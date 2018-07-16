@@ -9,7 +9,7 @@ from scipy.misc import imsave
 from mayavi import mlab
 import matplotlib.pyplot as ppl
 
-toshow = np.load("esquerdoinferior.npy")
+toshow = np.load("esquerdoinferio.npy")
 	
 fig = mlab.gcf()
 mlab.clf()
