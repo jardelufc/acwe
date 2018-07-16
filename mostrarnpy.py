@@ -16,4 +16,4 @@ mlab.clf()
 src = mlab.pipeline.scalar_field(toshow)
 mlab.pipeline.image_plane_widget(src, colormap='gray') #, plane_orientation='x_axes', colormap='gray'
 cnt = mlab.contour3d(toshow, contours=[0.5])
-mlab.show()
+mlab.show()  
