@@ -12,15 +12,15 @@ def rgb2gray(img):
     """Convert a RGB image to gray scale."""
     return 0.2989*img[:,:,0] + 0.587*img[:,:,1] + 0.114*img[:,:,2]
 
-def circle_levelset(shape, center, sqradius, scalerow=1.0):
+def circle_levelset(shape, center, centerr,sqradius, scalerow=1.0):
     """Build a binary function with a circle as the 0.5-levelset."""
     grid = np.mgrid[list(map(slice, shape))].T - center
     phi = sqradius - np.sqrt(np.sum((grid.T)**2, 0))
-    u = np.float_(phi > 0)
+    ul = np.float_(phi > 0)
 
-    #gridr = np.mgrid[list(map(slice, shape))].T - centerr
-    #phir = sqradius - np.sqrt(np.sum((gridr.T)**2, 0))
-    #ur = np.float_(phir > 0)
+    gridr = np.mgrid[list(map(slice, shape))].T - centerr
+    phir = sqradius - np.sqrt(np.sum((gridr.T)**2, 0))
+    ur = np.float_(phir > 0)
 	
     #center1=(200, 77)
     #grid1 = np.mgrid[list(map(slice, shape))].T - center1
@@ -53,7 +53,7 @@ def circle_levelset(shape, center, sqradius, scalerow=1.0):
     #u6 = np.float_(phi6 > 0)
 
 	
-    #u=ul+ur
+    u=ul+ur
     return u
 
 def test_nodule():
@@ -293,7 +293,10 @@ def visual3d():
 
     #levelset = circle_levelset(img.shape, (30, 50, 80), 25)
 
-    x=np.ones((205,281,210))
+    x=np.int_(np.ones((205,281,420)))
+    #np.int_(u)
+    #np.ndarray.tofile(x,"todo.raw")
+
     n=0
     for file in os.listdir(path):
        current = os.path.join(path, file)
@@ -304,7 +307,7 @@ def visual3d():
 		   
 		   # Load the image.
            temp=imread(current)[...,0]
-           x[n] = temp[109:390,250:460]
+           x[n] = temp[109:390,40:460]
            n=n+1
 	
     #imga = imread("lungs/aori_100.bmp")[...,0]
@@ -328,21 +331,26 @@ def visual3d():
     #mlab.show()
     #img=np.int64(img)
     # Morphological ACWE. Initialization of the level-set.
-    macwe = morphsnakes.MorphACWE(x, smoothing=0, lambda1=1, lambda2=2)
-    macwe.levelset = circle_levelset(x.shape, (40, 100, 130), 20)
+    macwe = morphsnakes.MorphACWE(x, smoothing=3, lambda1=1, lambda2=2)
+    macwe.levelset = circle_levelset(x.shape, (100, 100, 130),(100, 100, 290), 20)
     #morphsnakes.evolve_visual3d(macwe, num_iters=300)
-    for i in range(300):
-       print("Iteration %s/%s..." % (i + 1, 300))
+    for i in range(500):
+       print("Iteration %s/%s..." % (i + 1, 500))
        macwe.step()
-    np.save("esquerdosuperior.npy",macwe._u)
-    toshow = np.load("esquerdoinferior.npy")
+    np.save("todo.npy",macwe._u)
+    #np.ndarray.tofile(macwe._u,"levelset.raw")
+    #x[0][0][0]=55
+    #print (x[0][0][0])
+    #np.ndarray.tofile(x,"todo.raw")
+
+    #toshow = np.load("todo.npy")
 	
-    fig = mlab.gcf()
-    mlab.clf()
-    src = mlab.pipeline.scalar_field(toshow)
-    mlab.pipeline.image_plane_widget(src, colormap='gray') #, plane_orientation='x_axes', colormap='gray'
-    cnt = mlab.contour3d(toshow, contours=[0.5])
-    mlab.show()
+    #fig = mlab.gcf()
+    #mlab.clf()
+    #src = mlab.pipeline.scalar_field(toshow)
+    #mlab.pipeline.image_plane_widget(src, colormap='gray') #, plane_orientation='x_axes', colormap='gray'
+    #cnt = mlab.contour3d(toshow, contours=[0.5])
+    #mlab.show()
     # Return the last levelset.
 
 if __name__ == '__main__':

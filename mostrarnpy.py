@@ -9,11 +9,11 @@ from scipy.misc import imsave
 from mayavi import mlab
 import matplotlib.pyplot as ppl
 
-toshow = np.load("esquerdoinferio.npy")
+toshow = np.load("todo.npy")
 	
 fig = mlab.gcf()
 mlab.clf()
 src = mlab.pipeline.scalar_field(toshow)
-mlab.pipeline.image_plane_widget(src, colormap='gray') #, plane_orientation='x_axes', colormap='gray'
+mlab.pipeline.image_plane_widget(src) #, colormap='gray') #, plane_orientation='x_axes', colormap='gray'
 cnt = mlab.contour3d(toshow, contours=[0.5])
 mlab.show()  
