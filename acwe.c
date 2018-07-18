@@ -2,6 +2,13 @@
 #include <malloc.h>
 #include <string.h>
 
+#include <time.h>       /* time_t, struct tm, difftime, time, mktime */
+ 
+
+  time_t timer;
+  struct tm y2k = {0};
+  double seconds,seconds2; 
+
 void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes);
 
 
@@ -106,7 +113,20 @@ int main(int argc, char **argv)
 	fclose(fpls);
 	
 	memcpy(matriz2, matriz, 205*281*420*sizeof(char));
-    Boundary( matrizls, matriz,matriz2,c0,c1, 300);
+  y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+  y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+
+  time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+  seconds = difftime(timer,mktime(&y2k));
+
+    Boundary( matrizls, matriz,matriz2,c0,c1, 333);
+  time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+  seconds2 = difftime(timer,mktime(&y2k));
+
+  printf ("%.f seconds\n", seconds2-seconds);
+
 	
 	p=matriz;
 	
