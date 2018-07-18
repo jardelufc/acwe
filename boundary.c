@@ -10,39 +10,40 @@
 
 void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,int c0,int c1, int iteracoes){
 
-    int c2=0; int c3=0;
-    int m=0;  int n=0; int limite = 0;
-	int k=0;
+    unsigned int c2=0; 
+	unsigned int c3=0;
+    unsigned int m=0;  
+	unsigned int n=0; 
+	int limite = 0;
+	unsigned int k=0;
 	
-	int j=0;
-	int p=0;
+	unsigned int j=0;
+	unsigned int p=0;
 
-    char *pmatriz;
-    char *pmatriz2;
+    unsigned char *pmatriz;
+    unsigned char *pmatriz2;
 
  
-    int idxRow=0;int idxCol = 0;
-    int pixProcessed=0;
-
-
-
-    unsigned char pixelIn;
-    unsigned char pixelInLS;
 	
-	int idxPixel = 0;
+	unsigned int idxPixel = 0;
 
 
 for(int z = 0; z<iteracoes; z++) {        //iteracoes
 
-    c2=0;c3=0;p=0;j=0;
+    c2=0;
+	c3=0;
+	p=0;
+	j=0;
+	
     if(z%2 == 0){
-        pmatriz =(char*) matriz2;
-        pmatriz2 =(char*) matriz;
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
     }
     else{
-        pmatriz = (char*) matriz;
-        pmatriz2 =(char*) matriz2;
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
     }
+	idxPixel = 0;
 
 	// pula mn
 	memset(pmatriz,0,LARGURA*ALTURA);
@@ -65,14 +66,14 @@ for(int z = 0; z<iteracoes; z++) {        //iteracoes
 					if(limite < 0) *pmatriz = 1;
 					if(limite > 0) *pmatriz = 0;
 				}
-				if(pmatriz[idxPixel] == 0){
-					c2=c2+matrizLS[idxPixel];
-					p = p+1;
+				if(*pmatriz == 0){
+					c2+=matrizLS[idxPixel];
+					p++;
 				}
 
-				if(pmatriz[idxPixel] > 0){
-					c3 = c3+matrizLS[idxPixel];
-					j = j+1;
+				if(*pmatriz > 0){
+					c3 +=matrizLS[idxPixel];
+					j++;
 				}
 							
 				pmatriz++;

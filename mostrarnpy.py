@@ -9,7 +9,7 @@ from scipy.misc import imsave
 from mayavi import mlab
 import matplotlib.pyplot as ppl
 
-toshow = np.load("todo.npy")
+toshow = np.load("saida.npy")
 	
 fig = mlab.gcf()
 mlab.clf()
