@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 
-void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,int c0,int c1, int iteracoes);
+void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes);
 
 
 int main(int argc, char **argv)
@@ -15,8 +15,8 @@ int main(int argc, char **argv)
 	unsigned char *pls,*matrizls;
 	unsigned int aux;
 	unsigned int i,j,k;
-	unsigned int c0;
-	unsigned int c1;
+	unsigned long long c0;
+	unsigned long long c1;
 	
 
 
@@ -79,12 +79,12 @@ int main(int argc, char **argv)
 		fread(&aux,sizeof(int),1,fpls);
 	    *pls=(unsigned char)aux;
 		if(*p==0) {
-            c0 = c0 +(int)(*pls);
+            c0 = c0 +(unsigned long long)(*pls);
             j++;
 	    }
 		else if(*p==1)
 		{
-			c1=c1+(int)(*pls);
+			c1=c1+(unsigned long long)(*pls);
             k++;
 			//printf ("teste %d", (int)(*p));
 		}
@@ -93,11 +93,11 @@ int main(int argc, char **argv)
 		
 	}
 
-	printf("c0=%d numero de amostras= %d e sua media= %d \n",c0,j,c0/j);
-    printf("c1=%d numero de amostras= %d e sua media: %d \n",c1,k,c1/k);
+	printf("c0=%llu numero de amostras= %d e sua media= %ld \n",c0,j,c0/(unsigned long long)j);
+    printf("c1=%llu numero de amostras= %d e sua media: %ld \n",c1,k,c1/(unsigned long long)k);
 	
-    c0=c0/j;
-    c1=c1/k;
+    c0=c0/(unsigned long long)j;
+    c1=c1/(unsigned long long)k;
 	
 	pls=matrizls;	
 	//printf("alo mundo %d %d %d %d\n", i ,j ,k,matrizls[0]);
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 	fclose(fpls);
 	
 	memcpy(matriz2, matriz, 205*281*420*sizeof(char));
-    Boundary( matrizls, matriz,matriz2,c0,c1, 1000);
+    Boundary( matrizls, matriz,matriz2,c0,c1, 300);
 	
 	p=matriz;
 	

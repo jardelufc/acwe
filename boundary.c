@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,int c0,int c1, int iteracoes){
+void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes){
 
-    unsigned int c2=0; 
-	unsigned int c3=0;
+    unsigned long long c2=0L; 
+	unsigned long long c3=0L;
     unsigned int m=0;  
 	unsigned int n=0; 
 	int limite = 0;
@@ -30,10 +30,6 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 
 for(int z = 0; z<iteracoes; z++) {        //iteracoes
 
-    c2=0;
-	c3=0;
-	p=0;
-	j=0;
 	
     if(z%2 == 0){
         pmatriz =(unsigned char*) matriz2;
@@ -44,7 +40,12 @@ for(int z = 0; z<iteracoes; z++) {        //iteracoes
         pmatriz2 =(unsigned char*) matriz2;
     }
 	idxPixel = 0;
+    c2=0L;
+	c3=0L;
+	p=0;
+	j=0;
 
+	
 	// pula mn
 	memset(pmatriz,0,LARGURA*ALTURA);
 	pmatriz+=LARGURA*ALTURA;
@@ -60,19 +61,19 @@ for(int z = 0; z<iteracoes; z++) {        //iteracoes
 		
 			for(m=0;m<(LARGURA-2);m++) {
 				// processa o pixel
-				if (((pmatriz2[idxPixel-512] - pmatriz2[idxPixel+512])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
+				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
 
-					limite =((matrizLS[idxPixel]-c1)*(matrizLS[idxPixel]-c1)-(matrizLS[idxPixel]-c0)*(matrizLS[idxPixel]-c0));
+					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
 					if(limite < 0) *pmatriz = 1;
 					if(limite > 0) *pmatriz = 0;
 				}
 				if(*pmatriz == 0){
-					c2+=matrizLS[idxPixel];
+					c2+=(unsigned long long)matrizLS[idxPixel];
 					p++;
 				}
 
 				if(*pmatriz > 0){
-					c3 +=matrizLS[idxPixel];
+					c3 +=(unsigned long long)matrizLS[idxPixel];
 					j++;
 				}
 							
@@ -90,8 +91,66 @@ for(int z = 0; z<iteracoes; z++) {        //iteracoes
 		pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	}
-        c0=c2/p;
-        c1=c3/j;
+    c0=c2/(unsigned long long)p;
+    c1=c3/(unsigned long long)j;
+	
+	
+    /*if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+	idxPixel = 0;
+    c2=0L;
+	c3=0L;
+	p=0;
+	j=0;
+
+	
+	// pula mn
+	memset(pmatriz,0,LARGURA*ALTURA);
+	pmatriz+=LARGURA*ALTURA;
+	idxPixel+=LARGURA*ALTURA;
+	
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		memset(pmatriz,0,LARGURA+1);
+		pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+				if(*pmatriz == 0){
+					c2+=(unsigned long long)matrizLS[idxPixel];
+					p++;
+				}
+
+				if(*pmatriz > 0){
+					c3 +=(unsigned long long)matrizLS[idxPixel];
+					j++;
+				}
+							
+				pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			memset(pmatriz,0,2);
+			pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		memset(pmatriz,0,LARGURA-1);
+		pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+    c0=c2/(unsigned long long)p;
+    c1=c3/(unsigned long long)j;*/
+	
 }
 
 }
