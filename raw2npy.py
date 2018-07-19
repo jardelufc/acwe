@@ -10,7 +10,7 @@ from mayavi import mlab
 import matplotlib.pyplot as ppl
 
 x=np.fromfile("saida.raw", dtype='int', sep="")
-x = x.reshape([205, 281,420])
+x = x.reshape([102, 281,210])
 
 np.save("saida.npy",x)
 

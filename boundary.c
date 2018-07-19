@@ -1,9 +1,9 @@
 #define IMG_WIDTH_OR_COLS 205*281
 #define IMG_HEIGHT_OR_ROWS 420
 
-#define LARGURA 420 // m
+#define LARGURA 210 // m
 #define ALTURA 281  // n
-#define FATIAS 205 // k
+#define FATIAS 102 // k
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +28,8 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 	unsigned int idxPixel = 0;
 
 
+	// inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
+	
 for(int z = 0; z<iteracoes; z++) {        //iteracoes
 
 	
