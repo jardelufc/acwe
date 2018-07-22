@@ -9,7 +9,7 @@ from scipy.misc import imsave
 from mayavi import mlab
 import matplotlib.pyplot as ppl
 
-toshow = np.load("saida.npy")
+toshow = np.load("saida_.npy")
 fig = mlab.gcf()
 mlab.clf()
 src = mlab.pipeline.scalar_field(toshow)

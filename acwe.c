@@ -15,6 +15,8 @@ int  saveraw(char *name, unsigned char *p, unsigned int size);
 int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0);
 void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
 void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar);
+void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 );
+void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
 
 
 typedef struct  {
@@ -42,7 +44,7 @@ void copyimage(TImage *dest, TImage *source) {
 }
 int main(int argc, char **argv)
 {
-	FILE *fp;
+	//FILE *fp;
 	FILE *fpls;
 	
 	unsigned char  *p,*matriz,*matriz2,*matrizpartial;
@@ -51,22 +53,24 @@ int main(int argc, char **argv)
 	unsigned int i,j,k;
 	unsigned long long c0;
 	unsigned long long c1;
-	unsigned char *matrizlssplit[4];
-    int mx, ny, kz;
+	unsigned char *matrizlssplit[64];
+    int mx, ny, kz,x;
+	char nome[100];
 
 	i=j=k=0;
 	
-	
+	x=4;
+
 	fpls=fopen(argv[1], "rb");
 	if(fpls==NULL) {
 		printf("error opening file\n");
 		exit(0);
 	}
-	fp=fopen(argv[2], "rb");
+	/*fp=fopen(argv[2], "rb");
 	if(fp==NULL) {
 		printf("error opening file\n");
 		exit(0);
-	}
+	}*/
 
 	
 	matrizls=malloc(205*281*420*sizeof(char));
@@ -91,15 +95,15 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	
-	for(i=0;i<4;i++) {
-		matrizlssplit[i]=malloc(103*281*210*sizeof(char));
+	for(i=0;i<(2*x);i++) {
+		matrizlssplit[i]=malloc((205/x)*281*210*sizeof(char));
 		if(matrizlssplit[i]==NULL) {
 			printf("error memory allocation\n");
 			exit(0);
 		}
 	}
 
-	p=matriz;
+	/*p=matriz;
 	
 	while(!feof(fp)) {
 		
@@ -107,8 +111,12 @@ int main(int argc, char **argv)
 		*p=(unsigned char)aux;		
 		p++;
 		
-	}
+	}*/
+	memset(matriz,0,420*281*205);
 
+    circle_levelset(matriz, 130, 100,100, 20,420,281,205);
+    circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+	
 	pls=matrizls;
 	p=matriz;
 
@@ -134,8 +142,7 @@ int main(int argc, char **argv)
 		p++;
 		
 	}
-     
-	splitbyfour(matrizls, matrizlssplit, 420, 281, 205 );
+	splitby2x(x,matrizls, matrizlssplit, 420, 281, 205 );
 
 	printf("c0=%llu numero de amostras= %d e sua media= %ld \n",c0,j,c0/(unsigned long long)j);
     printf("c1=%llu numero de amostras= %d e sua media: %ld \n",c1,k,c1/(unsigned long long)k);
@@ -158,39 +165,44 @@ int main(int argc, char **argv)
 
 
    tempo=0.0;
-  for(i=0;i<4;i++) { 
+   strcpy(nome,argv[2]);
+  for(i=0;i<(2*x);i++) { 
    time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
   seconds = difftime(timer,mktime(&y2k));
-    binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,102,100);
+    binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
     //circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
-    circle_levelset(matrizpartial, mx, ny, kz, 50, 210, 281,102);
-    Boundary( matrizlssplit[i], matrizpartial,matriz2,c0,c1, 300,210, 281,102);
+	memset(matrizpartial,0,210*281*(205/x));
+    circle_levelset(matrizpartial, mx, ny, kz, 100/x, 210, 281,(205/x));
+    Boundary( matrizlssplit[i], matrizpartial,matriz2,c0,c1, 300,210, 281,(205/x));
 
 
-  copy4volume(matriz, matrizpartial, i,420,281,205);
+  copy2xvolume(x,matriz, matrizpartial, i,420,281,205);
    time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
   seconds2 = difftime(timer,mktime(&y2k)); 
   tempo+=(seconds2-seconds);
-    saveraw(argv[i+5],matrizpartial,210*102*281);
+  nome[strlen(nome)-5]=i+'0';
+    saveraw(nome,matrizpartial,210*(205/x)*281);
   }
+  
+  
     time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
   seconds = difftime(timer,mktime(&y2k));
-      Boundary( matrizls, matriz,matriz2,c0,c1, 300,420,281,205);
+      Boundary( matrizls, matriz,matriz2,c0,c1, 0,420,281,205);
    time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
   seconds2 = difftime(timer,mktime(&y2k)); 
   tempo+=(seconds2-seconds);
   
-  saveraw(argv[3],matriz,420*205*281);
+  saveraw(argv[2],matriz,420*205*281);
   
 	
 
     printf ("%lf seconds\n", tempo);
 	
-	p=matriz;
+	/*p=matriz;
 	rewind(fp);
 	while(!feof(fp)) {
 		
@@ -198,14 +210,17 @@ int main(int argc, char **argv)
 		*p=(unsigned char)aux;		
 		p++;
 		
-	}
+	}*/
     	
    time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
   seconds = difftime(timer,mktime(&y2k));
     //binmasscenter(matrizls, &mx, &ny, &kz,420, 281,205,100);
-    //circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
-    //circle_levelset(matrizpartial, mx, ny, kz, 50, 210, 281,102);
+	memset(matriz,0,420*281*205);
+
+    circle_levelset(matriz, 130, 100,100, 20,420,281,205);
+    circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+	
     Boundary( matrizls, matriz,matriz2,c0,c1, 300,420,281,205);
   time(&timer);  /* get current time; same as: timer = time(NULL)  */
 
@@ -216,7 +231,7 @@ int main(int argc, char **argv)
     printf ("%lf seconds\n", seconds2-seconds);
 	
 
-	saveraw(argv[4],matriz,420*205*281);
+	saveraw(argv[3],matriz,420*205*281);
 
 	/*p=matriz;
 
@@ -226,7 +241,7 @@ int main(int argc, char **argv)
 	free(matriz);
 	free(matriz2);
 	free (matrizpartial);
-	fclose(fp);
+	//fclose(fp);
 
 	for(i=0;i<4;i++)
 		free(matrizlssplit[i]);
@@ -308,8 +323,8 @@ int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int 
 				msqraio+=((k-centerk)*(k-centerk));	
 				if(msqraio<sqraio)
 					*p=1;
-				else
-					*p=0;
+				/*else
+					*p=0;*/
 				p++;
 			}
 		 }
@@ -419,5 +434,67 @@ void crop3d(void) {
 void cleaninterior (void) {
 	
 	
+	
+}
+
+void readraw (void) {
+	
+	
+}
+
+void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
+
+   unsigned char *p[64],*pdest[64];
+   int k,i,n;
+   int offset[64];
+   offset[0]=0;
+   offset[1]=(m0/2);
+   for(i=2;i<(2*x);i++) {
+	  offset[i]=(i/2)*m0*n0*(k0/x)+offset[i%2];
+   }
+   
+   i=0;
+   
+   for(i=0;i<(2*x);i++) { 
+      pdest[i]=plsvec[i];
+	  p[i]=pls+offset[i];
+   }
+	for (k=0;k<(k0/(x));k++) {
+		for(n=0;n<n0;n++) {
+			for(i=0;i<(2*x);i++) {
+		     	memcpy(pdest[i],p[i],m0/2);
+				pdest[i]+=(m0/2);
+				p[i]+=m0;
+			}
+			
+		}		
+	}
+}
+
+void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0){
+   unsigned char *pv,*pvsrc;
+   int n,k,i;
+   int offset[64];
+   
+   offset[0]=0;
+   offset[1]=((m0/2));
+   for(i=2;i<(2*x);i++) {
+	  offset[i]=(i/2)*m0*n0*(k0/x)+offset[i%2];
+   }
+   i=0;
+   pv=v;
+   pvsrc=vsrc;
+   
+   pv+=offset[position];
+   
+	for (k=0;k<(k0/x);k++) {
+		for(n=0;n<n0;n++) {
+			//for(i=0;i<4;i++) {
+		     	memcpy(pv,pvsrc,m0/2);
+				pvsrc+=(m0/2);
+				pv+=m0;
+			//}
+		}		
+	}
 	
 }
