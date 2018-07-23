@@ -27,9 +27,9 @@ x=np.fromfile("saida3.raw", dtype='int', sep="")
 x = x.reshape([51, 281,210])
 np.save("saida3.npy",x)
 
-x=np.fromfile("saida4.raw", dtype='int', sep="")
+x=np.fromfile("saida0.raw", dtype='int', sep="")
 x = x.reshape([51, 281,210])
-np.save("saida4.npy",x)
+np.save("saida0.npy",x)
 
 x=np.fromfile("saida_.raw", dtype='int', sep="")
 x = x.reshape([205, 281,420])
