@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <time.h>       /* time_t, struct tm, difftime, time, mktime */
  typedef  struct  {
