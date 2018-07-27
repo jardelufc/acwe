@@ -15,25 +15,25 @@ import cv2
 
 #y=np.int_(np.ones((971,512,512)))
 
-x=np.fromfile("saida1.raw", dtype='int', sep="")
-x = x.reshape([51, 281,210])
-np.save("saida1.npy",x)
+#x=np.fromfile("saida1.raw", dtype='int', sep="")
+#x = x.reshape([51, 281,210])
+#np.save("saida1.npy",x)
 
-x=np.fromfile("saida2.raw", dtype='uint32', sep="")
-x = x.reshape([51, 281,210])
-np.save("saida2.npy",x)
+#x=np.fromfile("saida2.raw", dtype='uint32', sep="")
+#x = x.reshape([51, 281,210])
+#np.save("saida2.npy",x)
 
-x=np.fromfile("saida3.raw", dtype='uint32', sep="")
-x = x.reshape([51, 281,210])
-np.save("saida3.npy",x)
+#x=np.fromfile("saida3.raw", dtype='uint32', sep="")
+#x = x.reshape([51, 281,210])
+#np.save("saida3.npy",x)
 
-x=np.fromfile("saida0.raw", dtype='uint32', sep="")
-x = x.reshape([51, 281,210])
-np.save("saida0.npy",x)
+#x=np.fromfile("saida0.raw", dtype='uint32', sep="")
+#x = x.reshape([51, 281,210])
+#np.save("saida0.npy",x)
 
-x=np.fromfile("saida_.raw", dtype='uint32', sep="")
-x = x.reshape([205, 281,420])
-np.save("saida_.npy",x)
+#x=np.fromfile("saida_.raw", dtype='uint32', sep="")
+#x = x.reshape([205, 281,420])
+#np.save("saida_.npy",x)
 
 x=np.fromfile("original.raw", dtype='uint32', sep="")
 x = x.reshape([205, 281,420])

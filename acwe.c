@@ -1,34 +1,5 @@
-#include <stdio.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
 
-#include <time.h>       /* time_t, struct tm, difftime, time, mktime */
- typedef  struct  {
-	
-	unsigned char *pdata;
-	unsigned int m0,n0,k0;
-	unsigned int datasize;
-	
-} TImage;
-
-  time_t timer;
-  struct tm y2k = {0};
-  double seconds,seconds2, tempo; 
-
-void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes,int LARGURA, int ALTURA, int FATIAS);
-void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 );
-int  saveraw(char *name, unsigned char *p, unsigned int size);
-int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0);
-void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
-void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar);
-void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 );
-void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
-void binarize(unsigned char *p, unsigned char *pout,int m0, int n0, int k0, unsigned int limiar);
-void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar);
-float dsc(unsigned char *img,unsigned char *imggold,int size);
-void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 );
-
+#include "acwe.h"
 
 
 
@@ -38,7 +9,7 @@ int initimage(TImage *image, int m0, int n0, int k0, int datasize) {
 	image->k0=k0;
 	image->pdata=malloc(n0*m0*k0);
 	image->datasize=datasize;
-	return (int) image->pdata;
+	return 1; //(int) image->pdata;
 }
 
 void freeimage(TImage *image) {
@@ -47,238 +18,6 @@ void freeimage(TImage *image) {
 
 void copyimage(TImage *dest, TImage *source) {
 	//memcpy (dest->pdata,source->pdata,dest)
-	
-}
-int main(int argc, char **argv)
-{
-	//FILE *fp;
-	FILE *fpls;
-	
-	unsigned char  *p,*matriz,*matriz2,*matrizjoint;
-	unsigned char *pls,*matrizls;
-	unsigned int aux;
-	unsigned int i,j,k;
-	unsigned long long c0;
-	unsigned long long c1;
-	unsigned char *matrizlssplit[64], *matrizpartial[64];
-    int mx, ny, kz,x;
-	char nome[100];
-	float similar;
-
-	i=j=k=0;
-	
-	x=4;
-
-	fpls=fopen(argv[1], "rb");
-	if(fpls==NULL) {
-		printf("error opening file\n");
-		exit(0);
-	}
-	/*fp=fopen(argv[2], "rb");
-	if(fp==NULL) {
-		printf("error opening file\n");
-		exit(0);
-	}*/
-
-	
-	matrizls=malloc(205*281*420*sizeof(char));
-	if(matrizls==NULL) {
-		printf("error memory allocation\n");
-		exit(0);
-	}
-    matrizjoint=malloc(205*281*420*sizeof(char));
-	if(matrizjoint==NULL) {
-		printf("error memory allocation\n");
-		exit(0);
-	}		
-    matriz=malloc(205*281*420*sizeof(char));
-	if(matriz==NULL) {
-		printf("error memory allocation\n");
-		exit(0);
-	}
-    matriz2=malloc(205*281*420*sizeof(char));
-	if(matriz2==NULL) {
-		printf("error memory allocation\n");
-		exit(0);
-	}
-    /*matrizpartial=malloc(102*281*210*sizeof(char));
-	if(matrizpartial==NULL) {
-		printf("error memory allocation\n");
-		exit(0);
-	}*/
-	
-	for(i=0;i<(2*x);i++) {
-		matrizlssplit[i]=malloc((205/x)*281*210*sizeof(char));
-		if(matrizlssplit[i]==NULL) {
-			printf("error memory allocation\n");
-			exit(0);
-		}
-	}
-	for(i=0;i<(2*x);i++) {
-		matrizpartial[i]=malloc((205/x)*281*210*sizeof(char));
-		if(matrizpartial[i]==NULL) {
-			printf("error memory allocation\n");
-			exit(0);
-		}
-	}
-	/*p=matriz;
-	
-	while(!feof(fp)) {
-		
-		fread(&aux,sizeof(int),1,fp);
-		*p=(unsigned char)aux;		
-		p++;
-		
-	}*/
-	memset(matriz,0,420*281*205);
-
-    circle_levelset(matriz, 130, 100,100, 20,420,281,205);
-    circle_levelset(matriz, 290, 100,100, 20,420,281,205);
-	
-	pls=matrizls;
-	p=matriz;
-
-	c0=0L;
-	c1=0L;
-	j=0;
-	k=0;
-	while(!feof(fpls)) {
-		
-		fread(&aux,sizeof(int),1,fpls);
-	    *pls=(unsigned char)aux;
-		if(*p==0) {
-            c0 = c0 +(unsigned long long)(*pls);
-            j++;
-	    }
-		else if(*p==1)
-		{
-			c1=c1+(unsigned long long)(*pls);
-            k++;
-			//printf ("teste %d", (int)(*p));
-		}
-		pls++;
-		p++;
-		
-	}
-	splitby2x(x,matrizls, matrizlssplit, 420, 281, 205 );
-    binarize(matrizls, matrizjoint,420,281,205, 100);
-	splitby2x(x,matrizjoint, matrizpartial, 420, 281, 205 );
-
-	printf("c0=%llu numero de amostras= %d e sua media= %ld \n",c0,j,c0/(unsigned long long)j);
-    printf("c1=%llu numero de amostras= %d e sua media: %ld \n",c1,k,c1/(unsigned long long)k);
-	
-    c0=c0/(unsigned long long)j;
-    c1=c1/(unsigned long long)k;
-	
-	pls=matrizls;	
-	//printf("alo mundo %d %d %d %d\n", i ,j ,k,matrizls[0]);
-	fflush(stdout);
-	//fclose(fp);
-	fclose(fpls);
-	
-	memcpy(matriz2, matriz, 205*281*420*sizeof(char));
-  y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
-  y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
-
-
-
-
-
-   tempo=0.0;
-   strcpy(nome,argv[2]);
-  
-  for(i=0;i<(2*x);i++) { 
-   time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-  seconds = difftime(timer,mktime(&y2k));
-    //binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
-    printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,205/(3*x));
-	//circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
-	memset(matrizpartial[i],0,210*281*(205/x));
-    //circle_levelset(matrizpartial[i], mx, ny, kz, 100/x, 210, 281,(205/x));
-    binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
-
-    Boundary( matrizlssplit[i], matrizpartial[i],matriz2,c0,c1, 300,210, 281,(205/x));
-
-
-  copy2xvolume(x,matrizjoint, matrizpartial[i], i,420,281,205);
-   time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-  seconds2 = difftime(timer,mktime(&y2k)); 
-  tempo+=(seconds2-seconds);
-  nome[strlen(nome)-5]=i+'0';
-    saveraw(nome,matrizpartial[i],210*(205/x)*281);
-  }
-  
-  
-    time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-  seconds = difftime(timer,mktime(&y2k));
-      Boundary( matrizls, matrizjoint,matriz2,c0,c1, 300,420,281,205);
-   time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-  seconds2 = difftime(timer,mktime(&y2k)); 
-  tempo+=(seconds2-seconds);
-  
-  saveraw(argv[2],matrizjoint,420*205*281);
-  
-	
-
-    printf ("%lf seconds\n", tempo);
-	
-	/*p=matriz;
-	rewind(fp);
-	while(!feof(fp)) {
-		
-		fread(&aux,sizeof(int),1,fp);
-		*p=(unsigned char)aux;		
-		p++;
-		
-	}*/
-    	
-   time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-  seconds = difftime(timer,mktime(&y2k));
-    //binmasscenter(matrizls, &mx, &ny, &kz,420, 281,205,100);
-	memset(matriz,0,420*281*205);
-
-    //circle_levelset(matriz, 130, 100,100, 20,420,281,205);
-    //circle_levelset(matriz, 290, 100,100, 20,420,281,205);
-    binarize(matrizls, matriz,420,281,205, 100);
-//cleanborder(matriz,420,281,205, 3);
-
-    Boundary( matrizls, matriz,matriz2,c0,c1, 300,420,281,205);
-	//cleanborder(matriz,420,281,205, 0);
-
-  time(&timer);  /* get current time; same as: timer = time(NULL)  */
-
-
-  //copy4volume(matriz, matrizpartial, i,420,281,205);
-  seconds2 = difftime(timer,mktime(&y2k)); 
-	
-    printf ("%lf seconds\n", seconds2-seconds);
-	similar=dsc(matriz,matrizjoint,205*420*281);
-    printf ("dsc=%lf\n", similar);
-
-
-	saveraw(argv[3],matriz,420*205*281);
-
-	/*p=matriz;
-
-	saveraw(argv[3],p,210*102*281);*/
-	
-    free(matrizls);
-	free(matriz);
-	free(matriz2);
-	free(matrizjoint);
-	//free (matrizpartial);
-	//fclose(fp);
-
-	for(i=0;i<(2*x);i++)
-		free(matrizlssplit[i]);
-	for(i=0;i<(2*x);i++)
-		free(matrizpartial[i]);
-	return 1;
 	
 }
 
@@ -467,22 +206,60 @@ void cleaninterior (void) {
 	
 }
 
-TImage *readraw (char *name) {
-	FILE *fp;
-	unsigned char *p;
-	unsigned int aux;
-	fp=fopen(name, "rb");
-	if(fp==NULL) {
+int readmhdraw (char *name, TImage *Image) {
+      FILE *fp;
+      unsigned char *p;
+      unsigned int aux;
+
+      char sz1[100],sz2[100],sz3[100],sz4[100];
+      int n0,m0,k0;
+
+      char szin[100]="DimSize = 512 512 121";
+
+      FILE *f;
+      unsigned char *pdata;
+
+      f=fopen(name, "rb");
+     if(f==NULL) {
 		printf("error opening file\n");
-		exit(0);
-	}
-	while(!feof(fp)) {
+		return -1;
+     }
+      while(!feof(f)) {
+         fgets(szin,100,f);
+         if(!memcmp(szin,"DimSize",7)) {
+            sscanf(szin,"%s = %d %d %d",sz1,&n0,&m0,&k0);
+            //printf("%s = %d %d %d",sz1,m0,n0,k0);
+         }
+         if(!memcmp(szin,"ElementDataFile",15)) {
+            sscanf(szin,"%s = %s",sz1,sz2);
+            //printf("%s = %d %d %d",sz1,m0,n0,k0);
+         }
+
+
+      }
+
+     Image->n0=n0;
+     Image->m0=m0;
+     Image->k0=k0;
+     
+     pdata=malloc(n0*m0*k0);
+     if(!pdata)
+	return -1;
+     Image->pdata=pdata;
+     fp=fopen(sz2, "rb");
+     if(fp==NULL) {
+		printf("error opening file\n");
+		return -1;
+     }
+     while(!feof(fp)) {
 		
-		fread(&aux,sizeof(int),1,fp);
-	    *p=(unsigned char)aux;
-		p++;		
-	}	
-	fclose(fp);	
+	fread(&aux,4,1,fp);
+	*pdata=(unsigned char) aux;
+	pdata++;		
+     }	
+    fclose(fp);	
+    fclose(f);
+
 }
 
 void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
@@ -505,7 +282,7 @@ void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0,
 	for (k=0;k<(k0/(x));k++) {
 		for(n=0;n<n0;n++) {
 			for(i=0;i<(2*x);i++) {
-		     	memcpy(pdest[i],p[i],m0/2);
+		     		memcpy(pdest[i],p[i],m0/2);
 				pdest[i]+=(m0/2);
 				p[i]+=m0;
 			}
@@ -548,12 +325,12 @@ void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, in
 // limiar=20
 void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
 	
-		   int c,i,j,aux,z,k;		   
-		   //unsigned char img[512][512];
+	int c,i,j,aux,z,k;		   
+	//unsigned char img[512][512];
 
-           c=0;
-           i=0;
-           j=0;
+        c=0;
+        i=0;
+        j=0;
         for(k=0;k<k0;k++) {
            for (j=0;j<m0;j++){
               c=0;
@@ -563,8 +340,8 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
                  if (img[k*n0*m0+i*m0+j]==0){                  
                        if(aux>limiar)
                           i=n0;
-			           aux++;
-				}
+		       aux++;
+		 }
                  else
                     aux=0;
 				 
@@ -581,17 +358,17 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
                     if(aux>limiar)
                        i=0;
                     aux++;
-				 }
+		 }
                  else
                     aux=0;				 
                  i--;
                  c--;
-			  }		   	  
+	      }		   	  
               for (z=c;z<n0;z++) // in range(c,512):
                  img[k*n0*m0+z*m0+j] = 0;
               c=0;
-		   }
-		}
+	   }
+    	}
 }
 
 float dsc(unsigned char *img,unsigned char *imggold,int size) {
@@ -652,14 +429,118 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
 		for(n=0;n<n0;n++) {
 			
 		     	memcpy(p,psrc,m0);
-				p+=m0;
-				psrc+=m0src;
-			
+			p+=m0;
+			psrc+=m0src;
 			
 		}		
 	}
 	
 }
 
+void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes,int LARGURA, int ALTURA, int FATIAS){
+
+    unsigned long long c2=0L; 
+    unsigned long long c3=0L;
+    unsigned int m=0;  
+    unsigned int n=0; 
+    int limite = 0;
+    unsigned int k=0;
+	
+    unsigned int j=0;
+    unsigned int p=0;
+
+    unsigned char *pmatriz;
+    unsigned char *pmatriz2;
+
+    unsigned char aux;
+	
+    unsigned int idxPixel = 0;
+    int ret,z;
+
+
+    // inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
+    pmatriz =(unsigned char*) matriz;
+    pmatriz2 =(unsigned char*) matriz;
+    z=0;
+    matriz2[0]=!matriz[0];
+    ret=1;
+
+    while(ret && z<iteracoes) {        //iteracoes
+
+	
+    /*if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }*/
+	idxPixel = 0;
+        c2=0L;
+	c3=0L;
+	p=0;
+	j=0;
+
+	
+	// pula mn
+	//memset(pmatriz,0,LARGURA*ALTURA);
+	//pmatriz+=LARGURA*ALTURA;
+	idxPixel+=LARGURA*ALTURA;
+	
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+				aux=pmatriz[idxPixel];
+				if(aux){
+					c3 +=(unsigned long long)matrizLS[idxPixel];
+					j++;
+
+				} else {
+				    c2+=(unsigned long long)matrizLS[idxPixel];
+					p++;
+					
+				}
+				// processa o pixel
+				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
+
+					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
+					if(limite < 0) pmatriz[idxPixel] = 1;
+					if(limite > 0) pmatriz[idxPixel] = 0;
+				}
+
+							
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+    c0=c2/(unsigned long long)p;
+    c1=c3/(unsigned long long)j;
+	if(!(z%10)) ret=memcmp(matriz2, matriz, LARGURA*ALTURA*FATIAS);
+	if(!ret)
+	printf ("\nterminou com %d iteracoes\n", z);
+	z++;
+
+	if(!(z%10)) memcpy(matriz2, matriz,LARGURA*ALTURA*FATIAS);
+		
+  }
+
+}
 
 
