@@ -293,23 +293,28 @@ def visual3d():
 
     #levelset = circle_levelset(img.shape, (30, 50, 80), 25)
 
-    x=np.int_(np.ones((205,281,420)))
+    #x=np.int_(np.ones((205,281,420)))
     #np.int_(u)
     #np.ndarray.tofile(x,"todo.raw")
 
     n=0
-    for file in os.listdir(path):
-       current = os.path.join(path, file)
-       if os.path.isfile(current):
+    #for file in os.listdir(path):
+    #   current = os.path.join(path, file)
+    #   if os.path.isfile(current):
            #data = open(current, "rb")
            #img = imread(current)[...,0]/255.0
 		   
 		   
-		   # Load the image.
-           temp=imread(current)[...,0]
-           x[n] = temp[109:390,40:460]
-           n=n+1
-	
+ 		   # Load the image.
+     #      temp=imread(current)[...,0]
+     #      x[n] = temp[109:390,40:460]
+     #      n=n+1
+
+
+    x=np.fromfile("todo.raw", dtype='uint32', sep="")
+    x = x.reshape([205, 281,420])
+    #np.save("original.npy",x)
+
     #imga = imread("lungs/aori_100.bmp")[...,0]
 
     #x[0]=imga
@@ -331,13 +336,31 @@ def visual3d():
     #mlab.show()
     #img=np.int64(img)
     # Morphological ACWE. Initialization of the level-set.
-    macwe = morphsnakes.MorphACWE(x, smoothing=3, lambda1=1, lambda2=2)
+    macwe = morphsnakes.MorphACWE(x, smoothing=1, lambda1=1, lambda2=1)
     macwe.levelset = circle_levelset(x.shape, (100, 100, 130),(100, 100, 290), 20)
     #morphsnakes.evolve_visual3d(macwe, num_iters=300)
-    for i in range(500):
-       print("Iteration %s/%s..." % (i + 1, 500))
+    for i in range(100):
+       print("Iteration %s/%s..." % (i + 1, 100))
        macwe.step()
-    np.save("todo.npy",macwe._u)
+    np.save("original1.npy",macwe._u)
+    for i in range(100):
+       print("Iteration %s/%s..." % (i + 1, 100))
+       macwe.step()
+    np.save("original2.npy",macwe._u)
+    for i in range(100):
+       print("Iteration %s/%s..." % (i + 1, 100))
+       macwe.step()
+    np.save("original3.npy",macwe._u)
+    for i in range(100):
+       print("Iteration %s/%s..." % (i + 1, 100))
+       macwe.step()
+    np.save("original4.npy",macwe._u)
+    for i in range(100):
+       print("Iteration %s/%s..." % (i + 1, 100))
+       macwe.step()
+    np.save("original5.npy",macwe._u)
+    
+    
     #np.ndarray.tofile(macwe._u,"levelset.raw")
     #x[0][0][0]=55
     #print (x[0][0][0])

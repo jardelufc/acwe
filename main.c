@@ -4,6 +4,8 @@ int main(int argc, char **argv)
 {
 	//FILE *fp;
 	FILE *fpls;
+
+        TImage ImageLS;
 	
 	unsigned char  *p,*matriz,*matriz2,*matrizjoint;
 	unsigned char *pls,*matrizls;
@@ -18,13 +20,18 @@ int main(int argc, char **argv)
 	time_t timer;
   	struct tm y2k = {0};
   	double seconds,seconds2, tempo; 
- 	TImage todoraw;
+        int iteracoes;
+
+        sscanf(argv[4],"%d",&iteracoes);
+ 	
 
 	i=j=k=0;
 	
 	x=4;
 
-	readmhdraw (&argv[1][0], &todoraw);
+	readmhdraw (&argv[1][0], &ImageLS);
+        printf ("%d %d %d", ImageLS.m0,ImageLS.n0,ImageLS.k0);
+        fflush(stdout);
 	/*fpls=fopen(argv[1], "rb");
 	if(fpls==NULL) {
 		printf("error opening file\n");
@@ -37,16 +44,16 @@ int main(int argc, char **argv)
 	}*/
 
 	
-	matrizls= todoraw.pdata ; /*malloc(205*281*420*sizeof(char));
+	matrizls= ImageLS.pdata ; /*malloc(205*281*420*sizeof(char));
 	if(matrizls==NULL) {
 		printf("error memory allocation\n");
 		exit(0);
 	}*/
-    	matrizjoint=malloc(205*281*420*sizeof(char));
+    	/*matrizjoint=malloc(205*281*420*sizeof(char));
 	if(matrizjoint==NULL) {
 		printf("error memory allocation\n");
 		exit(0);
-	}		
+	}*/		
     	matriz=malloc(205*281*420*sizeof(char));
 	if(matriz==NULL) {
 		printf("error memory allocation\n");
@@ -63,7 +70,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}*/
 	
-	for(i=0;i<(2*x);i++) {
+	/*for(i=0;i<(2*x);i++) {
 		matrizlssplit[i]=malloc((205/x)*281*210*sizeof(char));
 		if(matrizlssplit[i]==NULL) {
 			printf("error memory allocation\n");
@@ -76,7 +83,7 @@ int main(int argc, char **argv)
 			printf("error memory allocation\n");
 			exit(0);
 		}
-	}
+	}*/
 	/*p=matriz;
 	
 	while(!feof(fp)) {
@@ -86,7 +93,7 @@ int main(int argc, char **argv)
 		p++;
 		
 	}*/
-	memset(matriz,0,420*281*205);
+	/*memset(matriz,0,420*281*205);
 
    	circle_levelset(matriz, 130, 100,100, 20,420,281,205);
     	circle_levelset(matriz, 290, 100,100, 20,420,281,205);
@@ -97,7 +104,7 @@ int main(int argc, char **argv)
 	c0=0L;
 	c1=0L;
 	j=0;
-	k=0;
+	k=0;*/
 	/*while(!feof(fpls)) {
 		
 		fread(&aux,sizeof(int),1,fpls);
@@ -116,7 +123,7 @@ int main(int argc, char **argv)
 		p++;
 		
 	}*/
-        c0=50;
+        /*c0=50;
 	c1=100;
         j=1;
         k=1;
@@ -144,7 +151,7 @@ int main(int argc, char **argv)
 	strcpy(nome,argv[2]);
   
   	for(i=0;i<(2*x);i++) { 
-   		time(&timer);  /* get current time; same as: timer = time(NULL)  */
+   		time(&timer);  
 
   		seconds = difftime(timer,mktime(&y2k));
     		//binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
@@ -154,11 +161,11 @@ int main(int argc, char **argv)
     		//circle_levelset(matrizpartial[i], mx, ny, kz, 100/x, 210, 281,(205/x));
     		binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
 
-    		Boundary( matrizlssplit[i], matrizpartial[i],matriz2,c0,c1, 0,210, 281,(205/x));
+    		//Boundary( matrizlssplit[i], matrizpartial[i],matriz2,c0,c1, 0,210, 281,(205/x));
 
 
   		copy2xvolume(x,matrizjoint, matrizpartial[i], i,420,281,205);
-   		time(&timer);  /* get current time; same as: timer = time(NULL)  */
+   		time(&timer);  
 
   		seconds2 = difftime(timer,mktime(&y2k)); 
   		tempo+=(seconds2-seconds);
@@ -167,11 +174,11 @@ int main(int argc, char **argv)
   	}
   
   
-    	time(&timer);  /* get current time; same as: timer = time(NULL)  */
+    	time(&timer); 
 
  	seconds = difftime(timer,mktime(&y2k));
-      	Boundary( matrizls, matrizjoint,matriz2,c0,c1, 0,420,281,205);
-   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
+      	//Boundary( &ImageLS, matrizjoint,matriz2,c0,c1, 0);
+   	time(&timer);  
 
   	seconds2 = difftime(timer,mktime(&y2k)); 
   	tempo+=(seconds2-seconds);
@@ -180,7 +187,7 @@ int main(int argc, char **argv)
   
 	
 
-    	printf ("%lf seconds\n", tempo);
+    	printf ("%lf seconds\n", tempo);*/
 	
 	/*p=matriz;
 	rewind(fp);
@@ -198,14 +205,16 @@ int main(int argc, char **argv)
     	//binmasscenter(matrizls, &mx, &ny, &kz,420, 281,205,100);
 	memset(matriz,0,420*281*205);
 
-    	circle_levelset(matriz, 210, 140,41, 10,420,281,205);
+    	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
 
-    	//circle_levelset(matriz, 130, 100,100, 20,420,281,205);
-    	//circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+    	circle_levelset(matriz, 130, 100,100, 20,420,281,205);
+    	circle_levelset(matriz, 290, 100,100, 20,420,281,205);
     	//binarize(matrizls, matriz,420,281,205, 100);
 	//cleanborder(matriz,420,281,205, 3);
-
-    	Boundary( matrizls, matriz,matriz2,c0,c1, 50,420,281,205);
+        
+        c1=100;
+        c0=50;
+    	Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes);
 	//cleanborder(matriz,420,281,205, 0);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
@@ -215,8 +224,8 @@ int main(int argc, char **argv)
   	seconds2 = difftime(timer,mktime(&y2k)); 
 	
     	printf ("%lf seconds\n", seconds2-seconds);
-	similar=dsc(matriz,matrizjoint,205*420*281);
-    	printf ("dsc=%lf\n", similar);
+	/*similar=dsc(matriz,matrizjoint,205*420*281);
+    	printf ("dsc=%lf\n", similar);*/
 
 
 	saveraw(argv[3],matriz,420*205*281);
@@ -228,14 +237,14 @@ int main(int argc, char **argv)
     	free(matrizls);
 	free(matriz);
 	free(matriz2);
-	free(matrizjoint);
+	//free(matrizjoint);
 	//free (matrizpartial);
 	//fclose(fp);
 
-	for(i=0;i<(2*x);i++)
+	/*for(i=0;i<(2*x);i++)
 		free(matrizlssplit[i]);
 	for(i=0;i<(2*x);i++)
-		free(matrizpartial[i]);
+		free(matrizpartial[i]);*/
 	return 1;
 	
 }

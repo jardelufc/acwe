@@ -50,7 +50,7 @@ np.save("original.npy",x)
 #y = y.reshape([971, 512,512])
 
 
-np.save("saida.npy",x)
+#np.save("saida.npy",x)
 
 #A = np.fromfile(filename, dtype='int16', sep="")
 

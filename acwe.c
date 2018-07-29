@@ -1,6 +1,98 @@
 
 #include "acwe.h"
 
+const unsigned char morphvecs[9][9]={
+{0,1,2,12,13,14,24,25,26},
+{6,7,8,12,13,14,18,19,20},
+{0,4,8,9,13,17,18,22,26},
+{2,5,8,10,13,16,18,21,24},
+{2,4,6,11,13,15,20,22,24},
+{0,3,6,10,13,16,20,23,26},
+{9,10,11,12,13,14,15,16,17},
+{1,4,7,10,13,16,19,22,25},
+{3,4,5,12,13,14,21,22,23}};
+
+void window3d(unsigned char *pw, TImage *Image, unsigned int pos) {
+   int n0,m0;
+   unsigned char *pdata;
+   n0=Image->n0;
+   m0=Image->m0;
+   pdata=Image->pdata+pos;
+
+   pw[0]=pdata[0];
+   pw[1]=pdata[1];
+   pw[2]=pdata[2];
+   pdata+=m0;
+   pw[3]=pdata[0];
+   pw[4]=pdata[1];
+   pw[5]=pdata[2];
+   pdata+=m0;
+   pw[6]=pdata[0];
+   pw[7]=pdata[1];
+   pw[8]=pdata[2];
+
+   pdata=Image->pdata+n0*m0+pos;
+
+   pw[9]=pdata[0];
+   pw[10]=pdata[1];
+   pw[11]=pdata[2];
+   pdata+=m0;
+   pw[12]=pdata[0];
+   pw[13]=pdata[1];
+   pw[14]=pdata[2];
+   pdata+=m0;
+   pw[15]=pdata[0];
+   pw[16]=pdata[1];
+   pw[17]=pdata[2];
+
+
+   pdata=Image->pdata+2*n0*m0+pos;
+
+   pw[18]=pdata[0];
+   pw[19]=pdata[1];
+   pw[20]=pdata[2];
+   pdata+=m0;
+   pw[21]=pdata[0];
+   pw[22]=pdata[1];
+   pw[23]=pdata[2];
+   pdata+=m0;
+   pw[24]=pdata[0];
+   pw[25]=pdata[1];
+   pw[26]=pdata[2];
+
+
+
+}
+unsigned char minmax9(unsigned char *p) {
+   unsigned char x,y,i;
+   unsigned const char *pop;
+   y=1;
+   pop=morphvecs[0];
+
+   for (i=0;i<9;i++) {
+      x=p[pop[0]] | p[pop[1]] | p[pop[2]] | p[pop[3]] | p[pop[4]] | p[pop[5]] | p[pop[6]] | p[pop[7]] | p[pop[8]] ;
+      y=y&x;
+      pop+=9;
+   }
+   return y;
+
+}
+
+unsigned char maxmin9(unsigned char *p) {
+   unsigned char x,y,i;
+   unsigned const char *pop;
+   y=0;
+   pop=morphvecs[0];
+
+   for (i=0;i<9;i++) {
+      x=p[pop[0]] & p[pop[1]] & p[pop[2]] & p[pop[3]] & p[pop[4]] & p[pop[5]] & p[pop[6]] & p[pop[7]] & p[pop[8]] ;
+      y=y|x;
+      pop+=9;
+   }
+   return y;
+
+}
+
 
 
 int initimage(TImage *image, int m0, int n0, int k0, int datasize) {
@@ -227,7 +319,7 @@ int readmhdraw (char *name, TImage *Image) {
       while(!feof(f)) {
          fgets(szin,100,f);
          if(!memcmp(szin,"DimSize",7)) {
-            sscanf(szin,"%s = %d %d %d",sz1,&n0,&m0,&k0);
+            sscanf(szin,"%s = %d %d %d",sz1,&m0,&n0,&k0);
             //printf("%s = %d %d %d",sz1,m0,n0,k0);
          }
          if(!memcmp(szin,"ElementDataFile",15)) {
@@ -437,7 +529,12 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
 	
 }
 
-void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes,int LARGURA, int ALTURA, int FATIAS){
+void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes){
+
+    unsigned char *matrizLS;
+    int LARGURA,  ALTURA,  FATIAS;
+    unsigned char window[27];
+
 
     unsigned long long c2=0L; 
     unsigned long long c3=0L;
@@ -450,33 +547,47 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
     unsigned int p=0;
 
     unsigned char *pmatriz;
-    unsigned char *pmatriz2;
+    unsigned char *pmatriz2,*pmatriz3;
 
     unsigned char aux;
 	
-    unsigned int idxPixel = 0;
+    unsigned int idxPixel,idxPixelStop;
     int ret,z;
+    float newdsc,olddsc;
 
+    newdsc=0.0;
+    olddsc=1.0;
+
+    idxPixel=0;
+    matrizLS=Image->pdata;
+
+    LARGURA=Image->m0;
+    ALTURA=Image->n0;
+    FATIAS=Image->k0;
+
+   
+
+   pmatriz3=malloc(LARGURA*ALTURA*FATIAS);
 
     // inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
     pmatriz =(unsigned char*) matriz;
     pmatriz2 =(unsigned char*) matriz;
     z=0;
-    matriz2[0]=!matriz[0];
+    //matriz2[0]=!matriz[0];
     ret=1;
 
     while(ret && z<iteracoes) {        //iteracoes
 
 	
-    /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
+    if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
     }
     else{
         pmatriz = (unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
-    }*/
-	idxPixel = 0;
+    }
+	//idxPixel = 0;
         c2=0L;
 	c3=0L;
 	p=0;
@@ -484,9 +595,9 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 
 	
 	// pula mn
-	//memset(pmatriz,0,LARGURA*ALTURA);
+	//	memset(pmatriz,0,LARGURA*ALTURA);
 	//pmatriz+=LARGURA*ALTURA;
-	idxPixel+=LARGURA*ALTURA;
+	idxPixel=LARGURA*ALTURA;
 	
 	for (k=0;k<(FATIAS-2);k++) {
 		// pula m+1
@@ -494,9 +605,18 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 		//pmatriz+=(LARGURA+1);
 		idxPixel+=(LARGURA+1);
 
+
 		for(n=0;n<(ALTURA-2);n++) {
 		
 			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
+
+					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
+					if(limite < 0) pmatriz[idxPixel] = 1;
+					if(limite > 0) pmatriz[idxPixel] = 0;
+				}
 				aux=pmatriz[idxPixel];
 				if(aux){
 					c3 +=(unsigned long long)matrizLS[idxPixel];
@@ -507,15 +627,7 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 					p++;
 					
 				}
-				// processa o pixel
-				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
-
-					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
-					if(limite < 0) pmatriz[idxPixel] = 1;
-					if(limite > 0) pmatriz[idxPixel] = 0;
-				}
-
-							
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
 				//pmatriz++;
 				idxPixel++;
 			}
@@ -530,17 +642,226 @@ void Boundary( unsigned char *matrizLS, unsigned char *matriz,unsigned char *mat
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	}
-    c0=c2/(unsigned long long)p;
-    c1=c3/(unsigned long long)j;
-	if(!(z%10)) ret=memcmp(matriz2, matriz, LARGURA*ALTURA*FATIAS);
-	if(!ret)
-	printf ("\nterminou com %d iteracoes\n", z);
+        idxPixel=LARGURA*ALTURA;
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+
+    }
+
+    else{
+
+        pmatriz = (unsigned char*) matriz2;
+
+        pmatriz2 =(unsigned char*) matriz;
+
+    }
+
+        Image->pdata=pmatriz2;
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+		idxPixelStop=idxPixel;
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                               pmatriz[idxPixel]=minmax9(window);
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+    
+        idxPixel=LARGURA*ALTURA;
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+       Image->pdata=pmatriz2;
+
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+		idxPixelStop=idxPixel;
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                               pmatriz[idxPixel]=maxmin9(window);
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+
+        c0=c2/(unsigned long long)p;
+        c1=c3/(unsigned long long)j;
+	//if(!(z%10))        {
+            newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA*FATIAS);
+            printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
+            if(((newdsc-olddsc)*(newdsc-olddsc))<0.0000000001)
+               ret=0;
+            olddsc=newdsc;
+
+        //}
+	//if(!ret)
+	printf ("\n%d iteracoes\n", z);
 	z++;
 
-	if(!(z%10)) memcpy(matriz2, matriz,LARGURA*ALTURA*FATIAS);
+	/*if(!(z%10)) {
+           memcpy(pmatriz3, pmatriz,LARGURA*ALTURA*FATIAS);
+        }*/
+
 		
   }
+  Image->pdata=matrizLS;
 
 }
+
+int min(int a, int b, int c){
+    if( a<b){
+        if(a<c) return a;
+        else return c;
+    }
+    else{
+        if(b<c) return b;
+        else return c;
+    }
+}
+
+int max(int a, int b, int c){
+    if( a>b){
+        if(a>c) return a;
+        else return c;
+    }
+    else{
+        if(b>c) return b;
+        else return c;
+    }
+}
+
+int maxsi(int a, int b, int c, int d){
+    int l = max(a,b,c);
+    if(d>l) return d;
+    else return l;
+}
+
+int minis(int a, int b, int c, int d){
+    int l = min(a,b,c);
+    if(l<d) return l;
+    else return d;
+}
+
+int operacoemorfsi(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft){
+    int a = min(up,pixel,down);
+    int b = min(left,pixel,right);
+    int c = min(downleft,pixel,upright);
+    int d = min(upleft,pixel,downright);
+
+    int e = maxsi(a,b,c,d);
+    return e;
+}
+
+int operacoemorfis(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft){
+    int a = max(up,pixel,down);
+    int b = max(left,pixel,right);
+    int c = max(downleft,pixel,upright);
+    int d = max(upleft,pixel,downright);
+
+    int e = minis(a,b,c,d);
+    return e;
+}
+
+
+
+/*
+		idxPixel=idxPixelStop;
+		for(n=0;n<(ALTURA-2);n++) {
+
+		
+
+			for(m=0;m<(LARGURA-2);m++) {
+
+
+
+                                window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                                   pmatriz[idxPixel]=maxmin9(window);
+
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+
+				//pmatriz++;
+
+				idxPixel++;
+
+			}
+
+			//pula 2
+
+			//memset(pmatriz,0,2);
+
+			//pmatriz+=2;
+
+			idxPixel+=2;
+
+
+
+		}
+
+		idxPixel=idxPixelStop;
+		for(n=0;n<(ALTURA-2);n++) {
+
+		
+
+			for(m=0;m<(LARGURA-2);m++) {
+
+
+                                window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                                   pmatriz[idxPixel]=minmax9(window);
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}*/
+
 
 
