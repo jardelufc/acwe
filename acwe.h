@@ -32,6 +32,8 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar);
 float dsc(unsigned char *img,unsigned char *imggold,int size);
 void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 );
 int readmhdraw (char *name, TImage *Image) ;
+void density(TImage *t, unsigned char *level7, unsigned long long *pc0, unsigned long long *pc1);
+void acwe(char *filename, TImage *Image, unsigned int maxiteracoes);
 
 
 int min(int a, int b, int c);

@@ -529,6 +529,95 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
 	
 }
 
+
+void density(TImage *t, unsigned char *level7,unsigned long long *pc0, unsigned long long *pc1) {
+	
+	/*
+#define LARGURA 420 // m
+#define ALTURA 281  // n
+#define FATIAS 205 // k
+*/
+
+   unsigned char *p,*plevel7;
+   int nc0,nc1,i,m0,n0,k0;
+   unsigned long long c1,c0;
+
+   m0=t->m0;
+   n0=t->n0;
+   k0=t->k0;
+   
+   
+   p=t->pdata;
+   plevel7=level7;
+   c0=0;
+   c1=0;
+   nc0=0;
+   nc1=0;
+
+   i=0;
+   
+
+	for (i=0;i<(k0*n0*m0);i++) {
+           if(*plevel7) {
+              c1+=(unsigned long long) *p;
+              nc1++;
+           }
+           else {
+	      c0+=(unsigned long long) *p;
+              nc0++;
+           }
+
+	   p++;
+           plevel7++;
+				
+	}
+    *pc0=c0/(unsigned long long) nc0;
+    *pc1=c1/(unsigned long long) nc1;
+	
+}
+void acwe(char *filename, TImage *Image, unsigned int maxiteracoes){
+
+   TImage ImageLS;
+   unsigned char  *matriz,*matriz2;
+
+	unsigned long long c0;
+	unsigned long long c1;
+
+   readmhdraw (filename, &ImageLS);
+
+   matriz=malloc(205*281*420*sizeof(char));
+   if(matriz==NULL) {
+	printf("error memory allocation\n");
+	exit(0);
+   }
+   matriz2=malloc(205*281*420*sizeof(char));
+   if(matriz2==NULL) {
+	printf("error memory allocation\n");
+	exit(0);
+   }
+   memset(matriz,0,420*281*205);
+
+    	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
+
+   circle_levelset(matriz, 130, 100,100, 20,420,281,205);
+   circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+    	//binarize(matrizls, matriz,420,281,205, 100);
+	//cleanborder(matriz,420,281,205, 3);
+        
+
+   density(&ImageLS, matriz,&c0, &c1);
+   printf("c0=%llu \n",c0);
+   printf("c1=%llu \n",c1);
+   Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes);
+   Image->pdata=matriz;
+   Image->n0=ImageLS.n0;
+   Image->m0=ImageLS.m0;
+   Image->k0=ImageLS.k0;
+   free(matriz2);
+   free(ImageLS.pdata);
+
+}
+
 void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes){
 
     unsigned char *matrizLS;
@@ -734,9 +823,9 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 	//if(!(z%10))        {
             newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA*FATIAS);
             printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
-            if(((newdsc-olddsc)*(newdsc-olddsc))<0.0000000001)
+            /*if(((newdsc-olddsc)*(newdsc-olddsc))<0.0000000001)
                ret=0;
-            olddsc=newdsc;
+            olddsc=newdsc;*/
 
         //}
 	//if(!ret)
@@ -806,62 +895,5 @@ int operacoemorfis(int pixel, int up, int down, int left, int right, int upright
     int e = minis(a,b,c,d);
     return e;
 }
-
-
-
-/*
-		idxPixel=idxPixelStop;
-		for(n=0;n<(ALTURA-2);n++) {
-
-		
-
-			for(m=0;m<(LARGURA-2);m++) {
-
-
-
-                                window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
-                                   pmatriz[idxPixel]=maxmin9(window);
-
-				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
-
-				//pmatriz++;
-
-				idxPixel++;
-
-			}
-
-			//pula 2
-
-			//memset(pmatriz,0,2);
-
-			//pmatriz+=2;
-
-			idxPixel+=2;
-
-
-
-		}
-
-		idxPixel=idxPixelStop;
-		for(n=0;n<(ALTURA-2);n++) {
-
-		
-
-			for(m=0;m<(LARGURA-2);m++) {
-
-
-                                window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
-                                   pmatriz[idxPixel]=minmax9(window);
-				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}*/
-
 
 

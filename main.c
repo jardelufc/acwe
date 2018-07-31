@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 	//FILE *fp;
 	FILE *fpls;
 
-        TImage ImageLS;
+        TImage ImageLS, Image;
 	
 	unsigned char  *p,*matriz,*matriz2,*matrizjoint;
 	unsigned char *pls,*matrizls;
@@ -29,9 +29,9 @@ int main(int argc, char **argv)
 	
 	x=4;
 
-	readmhdraw (&argv[1][0], &ImageLS);
-        printf ("%d %d %d", ImageLS.m0,ImageLS.n0,ImageLS.k0);
-        fflush(stdout);
+	//readmhdraw (&argv[1][0], &ImageLS);
+        //printf ("%d %d %d", ImageLS.m0,ImageLS.n0,ImageLS.k0);
+        //fflush(stdout);
 	/*fpls=fopen(argv[1], "rb");
 	if(fpls==NULL) {
 		printf("error opening file\n");
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	}*/
 
 	
-	matrizls= ImageLS.pdata ; /*malloc(205*281*420*sizeof(char));
+	/*matrizls= ImageLS.pdata ; /*malloc(205*281*420*sizeof(char));
 	if(matrizls==NULL) {
 		printf("error memory allocation\n");
 		exit(0);
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		printf("error memory allocation\n");
 		exit(0);
 	}*/		
-    	matriz=malloc(205*281*420*sizeof(char));
+    	/*matriz=malloc(205*281*420*sizeof(char));
 	if(matriz==NULL) {
 		printf("error memory allocation\n");
 		exit(0);
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	if(matriz2==NULL) {
 		printf("error memory allocation\n");
 		exit(0);
-	}
+	}*/
     /*matrizpartial=malloc(102*281*210*sizeof(char));
 	if(matrizpartial==NULL) {
 		printf("error memory allocation\n");
@@ -203,18 +203,22 @@ int main(int argc, char **argv)
 
   	seconds = difftime(timer,mktime(&y2k));
     	//binmasscenter(matrizls, &mx, &ny, &kz,420, 281,205,100);
-	memset(matriz,0,420*281*205);
+	//memset(matriz,0,420*281*205);
 
     	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
 
-    	circle_levelset(matriz, 130, 100,100, 20,420,281,205);
-    	circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+    	//circle_levelset(matriz, 130, 100,100, 20,420,281,205);
+    	//circle_levelset(matriz, 290, 100,100, 20,420,281,205);
     	//binarize(matrizls, matriz,420,281,205, 100);
 	//cleanborder(matriz,420,281,205, 3);
         
-        c1=100;
-        c0=50;
-    	Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes);
+        //c1=100;
+        //c0=50;
+        //density(&ImageLS, matriz,&c0, &c1);
+	//printf("c0=%llu \n",c0);
+    	//printf("c1=%llu \n",c1);
+    	//Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes);
+        acwe(&argv[1][0], &Image, iteracoes);
 	//cleanborder(matriz,420,281,205, 0);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
@@ -227,16 +231,16 @@ int main(int argc, char **argv)
 	/*similar=dsc(matriz,matrizjoint,205*420*281);
     	printf ("dsc=%lf\n", similar);*/
 
-
-	saveraw(argv[3],matriz,420*205*281);
+        
+	saveraw(argv[3],Image.pdata,420*205*281);
 
 	/*p=matriz;
 
 	saveraw(argv[3],p,210*102*281);*/
 	
-    	free(matrizls);
-	free(matriz);
-	free(matriz2);
+    	//free(matrizls);
+	//free(matriz);
+	//free(matriz2);
 	//free(matrizjoint);
 	//free (matrizpartial);
 	//fclose(fp);
