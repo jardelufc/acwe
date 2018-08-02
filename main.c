@@ -21,10 +21,11 @@ int main(int argc, char **argv)
 	time_t timer;
   	struct tm y2k = {0};
   	double seconds,seconds2, tempo; 
-        int iteracoes;
+        int iteracoes,smoothing;
 
         sscanf(argv[4],"%d",&iteracoes);
         sscanf(argv[5],"%d",&x);
+        sscanf(argv[6],"%d",&smoothing);
  	
 
 	i=j=k=0;
@@ -219,8 +220,8 @@ int main(int argc, char **argv)
         //density(&ImageLS, matriz,&c0, &c1);
 	//printf("c0=%llu \n",c0);
     	//printf("c1=%llu \n",c1);
-    	//Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes);
-        acwex(x,&argv[1][0], &Image, iteracoes);
+    	//Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes,smoothing);
+        acwex(x,&argv[1][0], &Image, iteracoes,smoothing);
 	//cleanborder(matriz,420,281,205, 0);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
@@ -251,8 +252,8 @@ int main(int argc, char **argv)
 		free(matrizlssplit[i]);
 	for(i=0;i<(2*x);i++)
 		free(matrizpartial[i]);*/
-        system("python raw2npy.py");
-        system("python mostrarnpy.py");
+        system("python3 raw2npy.py");
+        system("python3 mostrarnpy.py");
 	return 1;
 	
 }

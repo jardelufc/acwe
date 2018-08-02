@@ -1,6 +1,6 @@
 
 #include "acwe.h"
-
+#include <omp.h>
 const unsigned char morphvecs[9][9]={
 {0,1,2,12,13,14,24,25,26},
 {6,7,8,12,13,14,18,19,20},
@@ -575,7 +575,7 @@ void density(TImage *t, unsigned char *level7,unsigned long long *pc0, unsigned 
     *pc1=c1/(unsigned long long) nc1;
 	
 }
-void acwe(char *filename, TImage *Image, unsigned int maxiteracoes){
+void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
    TImage ImageLS;
    unsigned char  *matriz,*matriz2;
@@ -608,7 +608,7 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes){
    density(&ImageLS, matriz,&c0, &c1);
    printf("c0=%llu \n",c0);
    printf("c1=%llu \n",c1);
-   Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes);
+   Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes,smoothing);
    Image->pdata=matriz;
    Image->n0=ImageLS.n0;
    Image->m0=ImageLS.m0;
@@ -617,7 +617,7 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes){
    free(ImageLS.pdata);
 
 }
-void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes){
+void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
  TImage ImageLSSplit[64],ImageLS;
    unsigned char  *matriz;
@@ -671,8 +671,14 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes){
 
    }
 
-  	for(i=0;i<(2*x);i++) { 
-                
+ omp_set_num_threads( 2*x );
+
+#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1)
+{
+  	//for(i=0;i<(2*x);i++) { 
+		i = omp_get_thread_num();
+                printf("numt=%i\n",i);
+                //i =  omp_get_num_threads();
     		binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
     		printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,205/(3*x));
 		//circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
@@ -680,12 +686,13 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes){
     		circle_levelset(matrizpartial[i], mx, ny, kz, (205/(10*x)), 210, 281,205/x );
     		//binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
                 density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
-    		Boundary(&ImageLSSplit[i], matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes);
+    		Boundary(&ImageLSSplit[i], matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes,smoothing);
 
   		copy2xvolume(x,matriz, matrizpartial[i], i,420,281,205);
   		//nome[strlen(nome)-5]=i+'0';
     		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
-  	}
+  	//}
+}
 
    //printf("c0=%llu \n",c0);
    //printf("c1=%llu \n",c1);
@@ -706,7 +713,7 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes){
 }
 
 
-void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes){
+void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing){
 
     unsigned char *matrizLS;
     int LARGURA,  ALTURA,  FATIAS;
@@ -819,7 +826,9 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	}
-        /*idxPixel=LARGURA*ALTURA;
+    
+    if(smoothing) {    
+    idxPixel=LARGURA*ALTURA;
    if(z%2 == 0){
         pmatriz =(unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
@@ -904,7 +913,8 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 		//memset(pmatriz,0,LARGURA-1);
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
-	}*/
+	}
+   }
 
         c0=c2/(unsigned long long)p;
         c1=c3/(unsigned long long)j;
