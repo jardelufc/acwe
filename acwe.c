@@ -617,6 +617,94 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes){
    free(ImageLS.pdata);
 
 }
+void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes){
+
+ TImage ImageLSSplit[64],ImageLS;
+   unsigned char  *matriz;
+
+	unsigned long long c0;
+	unsigned long long c1;
+   	int mx, ny, kz,i;
+
+	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
+ 
+
+   readmhdraw (filename, &ImageLS);
+
+   matriz=malloc(205*281*420*sizeof(char));
+   if(matriz==NULL) {
+	printf("error memory allocation\n");
+	exit(0);
+   }
+
+   memset(matriz,0,420*281*205);
+
+	
+    for(i=0;i<(2*x);i++) {
+	matrizlssplit[i]=malloc((205/x)*281*210*sizeof(char));
+	if(matrizlssplit[i]==NULL) {
+	   printf("error memory allocation\n");
+	   exit(0);
+       }
+    }
+    for(i=0;i<(2*x);i++) {
+       matrizpartial[i]=malloc((205/x)*281*210*sizeof(char));
+       if(matrizpartial[i]==NULL) {
+          printf("error memory allocation\n");
+	   exit(0);
+	}
+    }   
+    for(i=0;i<(2*x);i++) {
+       matriz2partial[i]=malloc((205/x)*281*210*sizeof(char));
+       if(matriz2partial[i]==NULL) {
+          printf("error memory allocation\n");
+	   exit(0);
+	}
+    }      
+   splitby2x(x,ImageLS.pdata, matrizlssplit, 420, 281, 205 );
+   for(i=0;i<(2*x);i++) {
+      ImageLSSplit[i].pdata=matrizlssplit[i];
+      ImageLSSplit[i].m0=ImageLS.m0/2;
+      ImageLSSplit[i].n0=ImageLS.n0;
+      ImageLSSplit[i].k0=ImageLS.k0/(x);
+      
+
+   }
+
+  	for(i=0;i<(2*x);i++) { 
+                
+    		binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
+    		printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,205/(3*x));
+		//circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
+		memset(matrizpartial[i],0,210*281*(205/x));
+    		circle_levelset(matrizpartial[i], mx, ny, kz, (205/(10*x)), 210, 281,205/x );
+    		//binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
+                density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
+    		Boundary(&ImageLSSplit[i], matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes);
+
+  		copy2xvolume(x,matriz, matrizpartial[i], i,420,281,205);
+  		//nome[strlen(nome)-5]=i+'0';
+    		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
+  	}
+
+   //printf("c0=%llu \n",c0);
+   //printf("c1=%llu \n",c1);
+   //Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes);
+   Image->pdata=matriz;
+   Image->n0=ImageLS.n0;
+   Image->m0=ImageLS.m0;
+   Image->k0=ImageLS.k0;
+   //free(matriz2);
+   free(ImageLS.pdata);
+   for(i=0;i<(2*x);i++) {
+      printf("%d\n",i);
+      free(matrizlssplit[i]);
+      free(matrizpartial[i]);
+      free(matriz2partial[i]);
+   }
+
+}
+
 
 void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes){
 
@@ -636,7 +724,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
     unsigned int p=0;
 
     unsigned char *pmatriz;
-    unsigned char *pmatriz2,*pmatriz3;
+    unsigned char *pmatriz2; //,*pmatriz3;
 
     unsigned char aux;
 	
@@ -656,7 +744,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 
    
 
-   pmatriz3=malloc(LARGURA*ALTURA*FATIAS);
+  // pmatriz3=malloc(LARGURA*ALTURA*FATIAS);
 
     // inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
     pmatriz =(unsigned char*) matriz;
@@ -731,7 +819,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	}
-        idxPixel=LARGURA*ALTURA;
+        /*idxPixel=LARGURA*ALTURA;
    if(z%2 == 0){
         pmatriz =(unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
@@ -816,7 +904,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 		//memset(pmatriz,0,LARGURA-1);
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
-	}
+	}*/
 
         c0=c2/(unsigned long long)p;
         c1=c3/(unsigned long long)j;
@@ -838,7 +926,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
 
 		
   }
-  Image->pdata=matrizLS;
+  //Image->pdata=matrizLS;
 
 }
 

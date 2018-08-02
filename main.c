@@ -1,4 +1,5 @@
 #include "acwe.h"
+ 
 
 int main(int argc, char **argv)
 {
@@ -23,11 +24,12 @@ int main(int argc, char **argv)
         int iteracoes;
 
         sscanf(argv[4],"%d",&iteracoes);
+        sscanf(argv[5],"%d",&x);
  	
 
 	i=j=k=0;
 	
-	x=4;
+	//x=4;
 
 	//readmhdraw (&argv[1][0], &ImageLS);
         //printf ("%d %d %d", ImageLS.m0,ImageLS.n0,ImageLS.k0);
@@ -218,7 +220,7 @@ int main(int argc, char **argv)
 	//printf("c0=%llu \n",c0);
     	//printf("c1=%llu \n",c1);
     	//Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes);
-        acwe(&argv[1][0], &Image, iteracoes);
+        acwex(x,&argv[1][0], &Image, iteracoes);
 	//cleanborder(matriz,420,281,205, 0);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
@@ -249,6 +251,8 @@ int main(int argc, char **argv)
 		free(matrizlssplit[i]);
 	for(i=0;i<(2*x);i++)
 		free(matrizpartial[i]);*/
+        system("python raw2npy.py");
+        system("python mostrarnpy.py");
 	return 1;
 	
 }
