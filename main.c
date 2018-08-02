@@ -252,8 +252,8 @@ int main(int argc, char **argv)
 		free(matrizlssplit[i]);
 	for(i=0;i<(2*x);i++)
 		free(matrizpartial[i]);*/
-        system("python3 raw2npy.py");
-        system("python3 mostrarnpy.py");
+        system("python raw2npy.py");
+        system("python mostrarnpy.py");
 	return 1;
 	
 }

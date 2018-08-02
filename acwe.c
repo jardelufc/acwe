@@ -195,6 +195,30 @@ int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int 
 	}
 }
 
+int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0, int a, int b, int c) {
+	
+	int msqraio,sqraio;
+	sqraio=raio*raio;
+	int m,n,k;
+	
+	
+	for (k=0;k<k0;k++) {
+		for(n=0;n<n0;n++) {
+			for(m=0;m<m0;m++) {
+				msqraio=0;
+				msqraio+=((m-centerm)*(m-centerm)) /  (a*a);
+				msqraio+=((n-centern)*(n-centern)) / (b*b);
+				msqraio+=((k-centerk)*(k-centerk)) / (c*c);	
+				if(msqraio<sqraio)
+					*p=1;
+				/*else
+					*p=0;*/
+				p++;
+			}
+		 }
+	}
+}
+
 void binarize(unsigned char *p, unsigned char *pout,int m0, int n0, int k0, unsigned int limiar) {
 		
 	int m,n,k;
@@ -227,22 +251,30 @@ void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, i
 	int mx,ny,kz;
 	
 	int c;
+        unsigned char *pflag;
 	
 	c=0;
 	
 	mx=0;
 	ny=0;
 	kz=0;
+
+
+
+       pflag=malloc(m0);
+
 	
 	for (k=0;k<k0;k++) {
+       memset(pflag,0,m0);
 		for(n=0;n<n0;n++) {
 			for(m=0;m<m0;m++) {
 				if(*p<limiar){
-					mx+=m;
+					if(pflag[m]){mx+=m;
 					ny+=n;
 					kz+=k;
-					c++;
-				}
+					c++;}
+				}else
+				  pflag[m]=1;
 					
 				p++;
 				
@@ -353,7 +385,9 @@ int readmhdraw (char *name, TImage *Image) {
     fclose(f);
 
 }
+/**
 
+*/
 void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
 
    unsigned char *p[64],*pdest[64];
@@ -369,18 +403,18 @@ void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0,
    
    for(i=0;i<(2*x);i++) { 
       pdest[i]=plsvec[i];
-	  p[i]=pls+offset[i];
+      p[i]=pls+offset[i];
    }
-	for (k=0;k<(k0/(x));k++) {
-		for(n=0;n<n0;n++) {
-			for(i=0;i<(2*x);i++) {
-		     		memcpy(pdest[i],p[i],m0/2);
-				pdest[i]+=(m0/2);
-				p[i]+=m0;
-			}
+   for (k=0;k<(k0/(x));k++) {
+      for(n=0;n<n0;n++) {
+         for(i=0;i<(2*x);i++) {
+	    memcpy(pdest[i],p[i],m0/2);
+	    pdest[i]+=(m0/2);
+	    p[i]+=m0;
+         }
 			
-		}		
-	}
+      }		
+   }
 }
 
 void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0){
@@ -683,7 +717,7 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
     		printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,205/(3*x));
 		//circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
 		memset(matrizpartial[i],0,210*281*(205/x));
-    		circle_levelset(matrizpartial[i], mx, ny, kz, (205/(10*x)), 210, 281,205/x );
+    		ellipsoid_levelset(matrizpartial[i], mx, ny, kz, (205/(5*x)), 210, 281,205/x,3,2,1 );
     		//binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
                 density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
     		Boundary(&ImageLSSplit[i], matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes,smoothing);
