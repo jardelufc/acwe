@@ -35,9 +35,9 @@ import cv2
 #x = x.reshape([205, 281,420])
 #np.save("saida_.npy",x)
 
-x=np.fromfile("original.raw", dtype='uint32', sep="")
-x = x.reshape([205, 281,420])
-np.save("original.npy",x)
+x=np.fromfile(sys.argv[1], dtype='uint32', sep="")
+x = x.reshape( [ int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]) ] )
+np.save(sys.argv[2],x)
 
 #cv2.imshow('',x[870])
 #img=x[870]

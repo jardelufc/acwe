@@ -22,6 +22,7 @@ int main(int argc, char **argv)
   	struct tm y2k = {0};
   	double seconds,seconds2, tempo; 
         int iteracoes,smoothing;
+        char szCommand[200];
 
         sscanf(argv[4],"%d",&iteracoes);
         sscanf(argv[5],"%d",&x);
@@ -235,7 +236,7 @@ int main(int argc, char **argv)
     	printf ("dsc=%lf\n", similar);*/
 
         
-	saveraw(argv[3],Image.pdata,420*205*281);
+	saveraw(argv[3],&Image);
 
 	/*p=matriz;
 
@@ -252,8 +253,14 @@ int main(int argc, char **argv)
 		free(matrizlssplit[i]);
 	for(i=0;i<(2*x);i++)
 		free(matrizpartial[i]);*/
-        system("python raw2npy.py");
-        system("python mostrarnpy.py");
+
+        sprintf(szCommand,"python3 raw2npy.py %s %s.npy %d %d %d",argv[3],argv[3],Image.k0,Image.n0,Image.m0); 
+        printf("%s\n",szCommand);
+        system(szCommand);
+        sprintf(szCommand,"python3 mostrarnpy.py %s.npy",argv[3]); 
+        printf("%s\n",szCommand);
+        system(szCommand);
+
 	return 1;
 	
 }

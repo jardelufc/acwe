@@ -113,10 +113,14 @@ void copyimage(TImage *dest, TImage *source) {
 	
 }
 
-int saveraw(char *name, unsigned char *p, unsigned int size) {
-	int i;
+int saveraw(char *name, TImage *Image) {
+	int i,size;
 	unsigned int aux;
 	FILE *foutput;
+        unsigned char *p;
+
+        p=Image->pdata;
+        size=Image->m0*Image->n0*Image->k0;
 	
 	foutput=fopen(name, "wb");
 	if(foutput==NULL) {
@@ -332,10 +336,11 @@ void cleaninterior (void) {
 
 int readmhdraw (char *name, TImage *Image) {
       FILE *fp;
+      unsigned short shortaux;
       unsigned char *p;
       unsigned int aux;
 
-      char sz1[100],sz2[100],sz3[100],sz4[100];
+      char sz1[100],sz2[100],sz3[100],sz4[100], szElType[100];
       int n0,m0,k0;
 
       char szin[100]="DimSize = 512 512 121";
@@ -358,8 +363,10 @@ int readmhdraw (char *name, TImage *Image) {
             sscanf(szin,"%s = %s",sz1,sz2);
             //printf("%s = %d %d %d",sz1,m0,n0,k0);
          }
-
-
+         if(!memcmp(szin,"ElementType",11)) {
+            sscanf(szin,"%s = %s",sz1,szElType);
+            //printf("%s = %d %d %d",sz1,m0,n0,k0);
+         }
       }
 
      Image->n0=n0;
@@ -370,17 +377,30 @@ int readmhdraw (char *name, TImage *Image) {
      if(!pdata)
 	return -1;
      Image->pdata=pdata;
+     strcpy(Image->szFileRawName,sz2);
      fp=fopen(sz2, "rb");
      if(fp==NULL) {
 		printf("error opening file\n");
 		return -1;
      }
+    
+    if(!memcmp(szElType,"MET_SHORT",9)) {
+     Image->datasize=2;
+     while(!feof(fp)) {
+		
+	fread(&aux,2,1,fp);
+	*pdata=(unsigned char) shortaux;
+	pdata++;		
+     }	
+     } else {
+     Image->datasize=4;
      while(!feof(fp)) {
 		
 	fread(&aux,4,1,fp);
 	*pdata=(unsigned char) aux;
 	pdata++;		
      }	
+    }
     fclose(fp);	
     fclose(f);
 
@@ -616,25 +636,32 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
 
 	unsigned long long c0;
 	unsigned long long c1;
+   int n0,m0,k0,size;
 
    readmhdraw (filename, &ImageLS);
 
-   matriz=malloc(205*281*420*sizeof(char));
+   m0=ImageLS.m0;
+   n0=ImageLS.n0;
+   k0=ImageLS.k0;
+
+   size=n0*m0*k0;
+
+   matriz=malloc(size*sizeof(char));
    if(matriz==NULL) {
 	printf("error memory allocation\n");
 	exit(0);
    }
-   matriz2=malloc(205*281*420*sizeof(char));
+   matriz2=malloc(size*sizeof(char));
    if(matriz2==NULL) {
 	printf("error memory allocation\n");
 	exit(0);
    }
-   memset(matriz,0,420*281*205);
+   memset(matriz,0,size);
 
     	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
 
-   circle_levelset(matriz, 130, 100,100, 20,420,281,205);
-   circle_levelset(matriz, 290, 100,100, 20,420,281,205);
+   circle_levelset(matriz, 130, 100,100, 20,m0,n0,k0);
+   circle_levelset(matriz, 290, 100,100, 20,m0,n0,k0);
     	//binarize(matrizls, matriz,420,281,205, 100);
 	//cleanborder(matriz,420,281,205, 3);
         
@@ -661,48 +688,54 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
    	int mx, ny, kz,i;
 
 	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
- 
+   int n0,m0,k0,size;
 
    readmhdraw (filename, &ImageLS);
 
-   matriz=malloc(205*281*420*sizeof(char));
+
+
+   m0=ImageLS.m0;
+   n0=ImageLS.n0;
+   k0=ImageLS.k0;
+
+   size=n0*m0*k0;
+
+   matriz=malloc(size*sizeof(char));
    if(matriz==NULL) {
 	printf("error memory allocation\n");
 	exit(0);
    }
 
-   memset(matriz,0,420*281*205);
+   memset(matriz,0,size);
 
 	
     for(i=0;i<(2*x);i++) {
-	matrizlssplit[i]=malloc((205/x)*281*210*sizeof(char));
+	matrizlssplit[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
 	if(matrizlssplit[i]==NULL) {
 	   printf("error memory allocation\n");
 	   exit(0);
        }
     }
     for(i=0;i<(2*x);i++) {
-       matrizpartial[i]=malloc((205/x)*281*210*sizeof(char));
+       matrizpartial[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
        if(matrizpartial[i]==NULL) {
           printf("error memory allocation\n");
 	   exit(0);
 	}
     }   
     for(i=0;i<(2*x);i++) {
-       matriz2partial[i]=malloc((205/x)*281*210*sizeof(char));
+       matriz2partial[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
        if(matriz2partial[i]==NULL) {
           printf("error memory allocation\n");
 	   exit(0);
 	}
     }      
-   splitby2x(x,ImageLS.pdata, matrizlssplit, 420, 281, 205 );
+   splitby2x(x,ImageLS.pdata, matrizlssplit, m0, n0, k0 );
    for(i=0;i<(2*x);i++) {
       ImageLSSplit[i].pdata=matrizlssplit[i];
       ImageLSSplit[i].m0=ImageLS.m0/2;
       ImageLSSplit[i].n0=ImageLS.n0;
-      ImageLSSplit[i].k0=ImageLS.k0/(x);
-      
-
+      ImageLSSplit[i].k0=ImageLS.k0/(x);  
    }
 
  omp_set_num_threads( 2*x );
@@ -713,16 +746,16 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
 		i = omp_get_thread_num();
                 printf("numt=%i\n",i);
                 //i =  omp_get_num_threads();
-    		binmasscenter(matrizlssplit[i], &mx, &ny, &kz,210, 281,(205/x),100);
-    		printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,205/(3*x));
+    		binmasscenter(matrizlssplit[i], &mx, &ny, &kz,m0/2, n0,(k0/x),100);
+    		printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,k0/(3*x));
 		//circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
-		memset(matrizpartial[i],0,210*281*(205/x));
-    		ellipsoid_levelset(matrizpartial[i], mx, ny, kz, (205/(5*x)), 210, 281,205/x,3,2,1 );
+		memset(matrizpartial[i],0,(m0/2)*n0*(k0/x));
+    		ellipsoid_levelset(matrizpartial[i], mx, ny, kz, (k0/(5*x)), (m0/2), n0,k0/x,3,2,1 );
     		//binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
                 density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
     		Boundary(&ImageLSSplit[i], matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes,smoothing);
 
-  		copy2xvolume(x,matriz, matrizpartial[i], i,420,281,205);
+  		copy2xvolume(x,matriz, matrizpartial[i], i,m0,n0,k0);
   		//nome[strlen(nome)-5]=i+'0';
     		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
   	//}
@@ -735,6 +768,7 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
    Image->n0=ImageLS.n0;
    Image->m0=ImageLS.m0;
    Image->k0=ImageLS.k0;
+   strcpy(Image->szFileRawName,ImageLS.szFileRawName);
    //free(matriz2);
    free(ImageLS.pdata);
    for(i=0;i<(2*x);i++) {

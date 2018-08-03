@@ -14,6 +14,7 @@
 	unsigned char *pdata;
 	unsigned int m0,n0,k0;
 	unsigned int datasize;
+        char szFileRawName[200];
 	
 } TImage;
 
@@ -21,7 +22,7 @@
 
 void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing);
 void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 );
-int  saveraw(char *name, unsigned char *p, unsigned int size);
+int saveraw(char *name, TImage *Image);
 int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0);
 void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
 void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar);

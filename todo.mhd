@@ -10,5 +10,5 @@ CenterOfRotation = 0 0 0
 AnatomicalOrientation = RAI
 ElementSpacing = 0.64453125 0.64453125 1.7999999523162842
 DimSize = 420 281 205
-ElementType = MET_SHORT
+ElementType = MET_LONG
 ElementDataFile = todo.raw
