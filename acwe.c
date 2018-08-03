@@ -175,7 +175,7 @@ void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int
 	
 }
 
-int circle_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0) {
+int sphere_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0) {
 	
 	int msqraio,sqraio;
 	sqraio=raio*raio;
@@ -388,8 +388,8 @@ int readmhdraw (char *name, TImage *Image) {
      Image->datasize=2;
      while(!feof(fp)) {
 		
-	fread(&aux,2,1,fp);
-	*pdata=(unsigned char) shortaux;
+	fread(&shortaux,2,1,fp);
+	*pdata=(unsigned char) (shortaux*(unsigned short)0xFF/(unsigned short)0xFFFF);
 	pdata++;		
      }	
      } else {
@@ -660,8 +660,8 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
 
     	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
 
-   circle_levelset(matriz, 130, 100,100, 20,m0,n0,k0);
-   circle_levelset(matriz, 290, 100,100, 20,m0,n0,k0);
+   sphere_levelset(matriz, 130, 100,100, 20,m0,n0,k0);
+   sphere_levelset(matriz, 290, 100,100, 20,m0,n0,k0);
     	//binarize(matrizls, matriz,420,281,205, 100);
 	//cleanborder(matriz,420,281,205, 3);
         
@@ -760,6 +760,119 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
     		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
   	//}
 }
+
+   //printf("c0=%llu \n",c0);
+   //printf("c1=%llu \n",c1);
+   //Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes);
+   Image->pdata=matriz;
+   Image->n0=ImageLS.n0;
+   Image->m0=ImageLS.m0;
+   Image->k0=ImageLS.k0;
+   strcpy(Image->szFileRawName,ImageLS.szFileRawName);
+   //free(matriz2);
+   free(ImageLS.pdata);
+   for(i=0;i<(2*x);i++) {
+      printf("%d\n",i);
+      free(matrizlssplit[i]);
+      free(matrizpartial[i]);
+      free(matriz2partial[i]);
+   }
+
+}
+
+
+
+void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
+
+ TImage ImageLSSplit[64],ImageLS;
+   unsigned char  *matriz,*pdataLSSplit,*pmatrizpartial, *pmatriz2partial;
+
+	unsigned long long c0;
+	unsigned long long c1;
+   	int mx, ny, kz,i,j;
+
+	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
+   int n0,m0,k0,size,fatiasize;
+
+   readmhdraw (filename, &ImageLS);
+
+
+
+   m0=ImageLS.m0;
+   n0=ImageLS.n0;
+   k0=ImageLS.k0;
+
+   size=n0*m0*k0;
+
+   matriz=malloc(size*sizeof(char));
+   if(matriz==NULL) {
+	printf("error memory allocation\n");
+	exit(0);
+   }
+
+   memset(matriz,0,size);
+
+	
+    for(i=0;i<(2*x);i++) {
+	matrizlssplit[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
+	if(matrizlssplit[i]==NULL) {
+	   printf("error memory allocation\n");
+	   exit(0);
+       }
+    }
+    for(i=0;i<(2*x);i++) {
+       matrizpartial[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
+       if(matrizpartial[i]==NULL) {
+          printf("error memory allocation\n");
+	   exit(0);
+	}
+    }   
+    for(i=0;i<(2*x);i++) {
+       matriz2partial[i]=malloc((k0/x)*n0*(m0/2)*sizeof(char));
+       if(matriz2partial[i]==NULL) {
+          printf("error memory allocation\n");
+	   exit(0);
+	}
+    }      
+   splitby2x(x,ImageLS.pdata, matrizlssplit, m0, n0, k0 );
+   for(i=0;i<(2*x);i++) {
+      ImageLSSplit[i].pdata=matrizlssplit[i];
+      ImageLSSplit[i].m0=ImageLS.m0/2;
+      ImageLSSplit[i].n0=ImageLS.n0;
+      ImageLSSplit[i].k0=ImageLS.k0/(x);  
+   }
+
+   fatiasize=ImageLSSplit[i].m0*ImageLSSplit[i].n0;
+// omp_set_num_threads( 2*x );
+
+//#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j)
+//{
+  	for(i=0;i<(2*x);i++) { 
+
+	   //i = omp_get_thread_num();
+           printf("numt=%i\n",i);
+           pdataLSSplit=ImageLSSplit[i].pdata;
+	   pmatrizpartial=matrizpartial[i];
+	   pmatriz2partial=matriz2partial[i];
+           for(j=0;j<(k0/x);k0++) {
+           //i =  omp_get_num_threads();
+    	      binmasscenter(matrizlssplit[i], &mx, &ny, &kz,m0/2, n0,(k0/x),100);
+    	      printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,k0/(3*x));
+	      //circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
+	      memset(matrizpartial[i],0,(m0/2)*n0*(k0/x));
+    	      //circle_levelset(matrizpartial[i], mx, ny, kz, (k0/(5*x)), (m0/2), n0,k0/x,3,2,1 );
+    	      //binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
+              density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
+    	      //Boundary2d(pdataLSSplit, matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes,smoothing);
+              pdataLSSplit+=fatiasize;
+              pmatrizpartial+=fatiasize;
+	      pmatriz2partial+=fatiasize;
+           }
+  	      copy2xvolume(x,matriz, matrizpartial[i], i,m0,n0,k0);
+  	  	//nome[strlen(nome)-5]=i+'0';
+    		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
+  	}
+//}
 
    //printf("c0=%llu \n",c0);
    //printf("c1=%llu \n",c1);
@@ -1007,6 +1120,235 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
   //Image->pdata=matrizLS;
 
 }
+
+
+void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing){
+
+    unsigned char *matrizLS;
+    int LARGURA,  ALTURA,  FATIAS;
+    unsigned char window[27];
+
+
+    unsigned long long c2=0L; 
+    unsigned long long c3=0L;
+    unsigned int m=0;  
+    unsigned int n=0; 
+    int limite = 0;
+    unsigned int k=0;
+	
+    unsigned int j=0;
+    unsigned int p=0;
+
+    unsigned char *pmatriz;
+    unsigned char *pmatriz2; //,*pmatriz3;
+
+    unsigned char aux;
+	
+    unsigned int idxPixel,idxPixelStop;
+    int ret,z;
+    float newdsc,olddsc;
+
+    newdsc=0.0;
+    olddsc=1.0;
+
+    idxPixel=0;
+    matrizLS=Image->pdata;
+
+    LARGURA=Image->m0;
+    ALTURA=Image->n0;
+    FATIAS=Image->k0;
+
+   
+
+  // pmatriz3=malloc(LARGURA*ALTURA*FATIAS);
+
+    // inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
+    pmatriz =(unsigned char*) matriz;
+    pmatriz2 =(unsigned char*) matriz;
+    z=0;
+    //matriz2[0]=!matriz[0];
+    ret=1;
+
+    while(ret && z<iteracoes) {        //iteracoes
+
+	
+    if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+	//idxPixel = 0;
+        c2=0L;
+	c3=0L;
+	p=0;
+	j=0;
+
+	
+	// pula mn
+	//	memset(pmatriz,0,LARGURA*ALTURA);
+	//pmatriz+=LARGURA*ALTURA;
+	idxPixel=LARGURA*ALTURA;
+	
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
+
+					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
+					if(limite < 0) pmatriz[idxPixel] = 1;
+					if(limite > 0) pmatriz[idxPixel] = 0;
+				}
+				aux=pmatriz[idxPixel];
+				if(aux){
+					c3 +=(unsigned long long)matrizLS[idxPixel];
+					j++;
+
+				} else {
+				    c2+=(unsigned long long)matrizLS[idxPixel];
+					p++;
+					
+				}
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+    
+    if(smoothing) {    
+    idxPixel=LARGURA*ALTURA;
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+
+    }
+
+    else{
+
+        pmatriz = (unsigned char*) matriz2;
+
+        pmatriz2 =(unsigned char*) matriz;
+
+    }
+
+        Image->pdata=pmatriz2;
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+		idxPixelStop=idxPixel;
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                               pmatriz[idxPixel]=minmax9(window);
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+    
+        idxPixel=LARGURA*ALTURA;
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+       Image->pdata=pmatriz2;
+
+	for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(LARGURA+1);
+		idxPixelStop=idxPixel;
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				// processa o pixel
+                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                               pmatriz[idxPixel]=maxmin9(window);
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+	}
+   }
+
+        c0=c2/(unsigned long long)p;
+        c1=c3/(unsigned long long)j;
+	//if(!(z%10))        {
+            newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA*FATIAS);
+            printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
+            /*if(((newdsc-olddsc)*(newdsc-olddsc))<0.0000000001)
+               ret=0;
+            olddsc=newdsc;*/
+
+        //}
+	//if(!ret)
+	printf ("\n%d iteracoes\n", z);
+	z++;
+
+	/*if(!(z%10)) {
+           memcpy(pmatriz3, pmatriz,LARGURA*ALTURA*FATIAS);
+        }*/
+
+		
+  }
+  //Image->pdata=matrizLS;
+
+}
+
 
 int min(int a, int b, int c){
     if( a<b){
