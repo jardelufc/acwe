@@ -185,18 +185,21 @@ int sphere_levelset(unsigned char *p,int centerm, int centern, int centerk, int 
 	for (k=0;k<k0;k++) {
 		for(n=0;n<n0;n++) {
 			for(m=0;m<m0;m++) {
+                                //printf("%d %d %d\n",m,n,k);
 				msqraio=0;
 				msqraio+=((m-centerm)*(m-centerm));
 				msqraio+=((n-centern)*(n-centern));
 				msqraio+=((k-centerk)*(k-centerk));	
 				if(msqraio<sqraio)
-					*p=1;
+				   *p=1;
 				/*else
 					*p=0;*/
 				p++;
 			}
 		 }
 	}
+      // printf("Dedel");
+      // fflush(stdout);
 }
 
 int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0, int a, int b, int c) {
@@ -244,6 +247,51 @@ void binarize(unsigned char *p, unsigned char *pout,int m0, int n0, int k0, unsi
 	
 }
 
+
+void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0) {
+		
+
+	int m,n,k,idxPixel;
+	
+	idxPixel=0;
+
+
+
+	for (k=0;k<(k0);k++) {
+		// pula m+1
+		//memset(pmatriz,0,LARGURA+1);
+		//pmatriz+=(LARGURA+1);
+		idxPixel+=(m0+1);
+
+
+		for(n=0;n<(n0-2);n++) {
+		
+			for(m=0;m<(m0-2);m++) {
+
+				// processa o pixel
+                               //window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
+                               pout[idxPixel]=p[idxPixel] | p[idxPixel-1] | p[idxPixel+1] | p[idxPixel-m0] | p[idxPixel-1-m0] | p[idxPixel+1-m0] | p[idxPixel+m0] | p[idxPixel-1+m0] | p[idxPixel+1+m0];
+				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(m0-1);
+	}
+   
+
+
+
+	
+}
 void cleanexterior(void) {
 	
 	
@@ -474,6 +522,8 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
 	int c,i,j,aux,z,k;		   
 	//unsigned char img[512][512];
 
+          //for(k=0;k<k0;k++) { memset(img+k*n0*m0,1,n0*m0/2);}
+
         c=0;
         i=0;
         j=0;
@@ -516,7 +566,9 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
 	   }
     	}
 }
-
+/**
+@brief return similaritie between two image vectors
+*/
 float dsc(unsigned char *img,unsigned char *imggold,int size) {
 	int k;
 	int TP,FP,FN;
@@ -564,7 +616,7 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
    m0=t->m0;
    n0=t->n0;
    k0=t->k0;
-   
+
    p=t->pdata;
    psrc=tsrc->pdata;
    psrc+=ik0*n0src*m0src+in0*m0src+ik0;
@@ -600,7 +652,8 @@ void density(TImage *t, unsigned char *level7,unsigned long long *pc0, unsigned 
    n0=t->n0;
    k0=t->k0;
    
-   
+   printf("%d %d %d\n",m0,n0,k0);
+fflush(stdout);
    p=t->pdata;
    plevel7=level7;
    c0=0;
@@ -660,17 +713,22 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
 
     	//circle_levelset(matriz, 210, 140,41, 10,420,281,205);
 
-   sphere_levelset(matriz, 130, 100,100, 20,m0,n0,k0);
-   sphere_levelset(matriz, 290, 100,100, 20,m0,n0,k0);
-    	//binarize(matrizls, matriz,420,281,205, 100);
-	//cleanborder(matriz,420,281,205, 3);
+   sphere_levelset(matriz, 200, 250,50, 20,m0,n0,k0);
+   sphere_levelset(matriz, 300, 250,50, 20,m0,n0,k0);
+//   sphere_levelset(matriz, 130, 100,100, 20,m0,n0,k0);
+//   sphere_levelset(matriz, 290, 100,100, 20,m0,n0,k0);
+
+    	//binarize(ImageLS.pdata, matriz2,ImageLS.m0,ImageLS.n0,ImageLS.k0, 100);
+    	//erosion(matriz2, matriz,ImageLS.m0,ImageLS.n0,ImageLS.k0);
+	//cleanborder(matriz,ImageLS.m0,ImageLS.n0,ImageLS.k0, 55);
         
 
    density(&ImageLS, matriz,&c0, &c1);
    printf("c0=%llu \n",c0);
    printf("c1=%llu \n",c1);
    Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes,smoothing);
-   Image->pdata=matriz;
+   erosion(matriz, matriz2,ImageLS.m0,ImageLS.n0,ImageLS.k0);
+   Image->pdata=matriz2;
    Image->n0=ImageLS.n0;
    Image->m0=ImageLS.m0;
    Image->k0=ImageLS.k0;
@@ -784,7 +842,7 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
 
 void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
- TImage ImageLSSplit[64],ImageLS;
+ TImage ImageLSSplit[64],ImageLS,ImageLSSlice, ImageLSori;
    unsigned char  *matriz,*pdataLSSplit,*pmatrizpartial, *pmatriz2partial;
 
 	unsigned long long c0;
@@ -794,9 +852,11 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
 	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
    int n0,m0,k0,size,fatiasize;
 
-   readmhdraw (filename, &ImageLS);
+   readmhdraw (filename, &ImageLSori);
 
 
+    	initimage(&ImageLS, 420, 281, ImageLSori.k0, 1);
+        crop(&ImageLS, &ImageLSori, 40, 109, 0 );
 
    m0=ImageLS.m0;
    n0=ImageLS.n0;
@@ -841,8 +901,11 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
       ImageLSSplit[i].n0=ImageLS.n0;
       ImageLSSplit[i].k0=ImageLS.k0/(x);  
    }
+  ImageLSSlice.m0=m0/2;
+  ImageLSSlice.n0=n0;
+  ImageLSSlice.k0=1;
 
-   fatiasize=ImageLSSplit[i].m0*ImageLSSplit[i].n0;
+   fatiasize=(m0/2)*n0;
 // omp_set_num_threads( 2*x );
 
 //#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j)
@@ -854,23 +917,25 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
            pdataLSSplit=ImageLSSplit[i].pdata;
 	   pmatrizpartial=matrizpartial[i];
 	   pmatriz2partial=matriz2partial[i];
-           for(j=0;j<(k0/x);k0++) {
+           for(j=0;j<(k0/x);j++) {
            //i =  omp_get_num_threads();
-    	      binmasscenter(matrizlssplit[i], &mx, &ny, &kz,m0/2, n0,(k0/x),100);
+    	      binmasscenter(pdataLSSplit, &mx, &ny, &kz,m0/2, n0,1,100);
     	      printf ("x=%d y=%d z=%d raio %d\n", mx,ny,kz,k0/(3*x));
 	      //circle_levelset(matrizpartial, 158, 175, 51, 50, 210, 281,102);
-	      memset(matrizpartial[i],0,(m0/2)*n0*(k0/x));
-    	      //circle_levelset(matrizpartial[i], mx, ny, kz, (k0/(5*x)), (m0/2), n0,k0/x,3,2,1 );
+	      memset(pmatrizpartial,0,(m0/2)*n0);
+    	      sphere_levelset(pmatrizpartial, mx, ny,0, 10, (m0/2), n0,1);
+
     	      //binarize(matrizlssplit[i], matrizpartial[i],210,281,205/x, 100);
-              density(&ImageLSSplit[i], matrizpartial[i],&c0, &c1);
-    	      //Boundary2d(pdataLSSplit, matrizpartial[i],matriz2partial[i],c0,c1, maxiteracoes,smoothing);
+              ImageLSSlice.pdata=pdataLSSplit;
+              density(&ImageLSSlice, pmatrizpartial,&c0, &c1);
+    	      Boundary2d(&ImageLSSlice, pmatrizpartial,pmatriz2partial,c0,c1, maxiteracoes,smoothing);
               pdataLSSplit+=fatiasize;
               pmatrizpartial+=fatiasize;
 	      pmatriz2partial+=fatiasize;
            }
-  	      copy2xvolume(x,matriz, matrizpartial[i], i,m0,n0,k0);
-  	  	//nome[strlen(nome)-5]=i+'0';
-    		//saveraw(nome,matrizpartial[i],210*(205/x)*281);
+  	   copy2xvolume(x,matriz, matrizpartial[i], i,m0,n0,k0);
+  	      //nome[strlen(nome)-5]=i+'0';
+             //saveraw(nome,matrizpartial[i],210*(205/x)*281);
   	}
 //}
 
@@ -1190,21 +1255,21 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 	// pula mn
 	//	memset(pmatriz,0,LARGURA*ALTURA);
 	//pmatriz+=LARGURA*ALTURA;
-	idxPixel=LARGURA*ALTURA;
+	//idxPixel=LARGURA*ALTURA;
 	
-	for (k=0;k<(FATIAS-2);k++) {
+	/*for (k=0;k<(FATIAS-2);k++) {
 		// pula m+1
 		//memset(pmatriz,0,LARGURA+1);
-		//pmatriz+=(LARGURA+1);
-		idxPixel+=(LARGURA+1);
+		//pmatriz+=(LARGURA+1);*/
+		idxPixel=(LARGURA+1);
 
 
 		for(n=0;n<(ALTURA-2);n++) {
 		
 			for(m=0;m<(LARGURA-2);m++) {
-
+                                //printf("%d %d\n",m,n);
 				// processa o pixel
-				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0) || ((pmatriz2[idxPixel+LARGURA*ALTURA] - pmatriz2[idxPixel-LARGURA*ALTURA])!=0)){
+				if (((pmatriz2[idxPixel-LARGURA] - pmatriz2[idxPixel+LARGURA])!=0) || ((pmatriz2[idxPixel+1] - pmatriz2[idxPixel-1])!=0)	){
 
 					limite =(((int)matrizLS[idxPixel]-(int)c1)*((int)matrizLS[idxPixel]-(int)c1)-2*((int)matrizLS[idxPixel]-(int)c0)*((int)matrizLS[idxPixel]-(int)c0));
 					if(limite < 0) pmatriz[idxPixel] = 1;
@@ -1234,8 +1299,8 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//memset(pmatriz,0,LARGURA-1);
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
-	}
-    
+	
+   /* 
     if(smoothing) {    
     idxPixel=LARGURA*ALTURA;
    if(z%2 == 0){
@@ -1323,20 +1388,21 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	}
-   }
+  // }
 
-        c0=c2/(unsigned long long)p;
+   */     
+       c0=c2/(unsigned long long)p;
         c1=c3/(unsigned long long)j;
 	//if(!(z%10))        {
-            newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA*FATIAS);
-            printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
+            //newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA);
+            //printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
             /*if(((newdsc-olddsc)*(newdsc-olddsc))<0.0000000001)
                ret=0;
             olddsc=newdsc;*/
 
         //}
 	//if(!ret)
-	printf ("\n%d iteracoes\n", z);
+	//printf ("\n%d iteracoes\n", z);
 	z++;
 
 	/*if(!(z%10)) {
@@ -1403,5 +1469,17 @@ int operacoemorfis(int pixel, int up, int down, int left, int right, int upright
     int e = minis(a,b,c,d);
     return e;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 

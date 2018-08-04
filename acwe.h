@@ -39,7 +39,7 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
 void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing);
 int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0, int a, int b, int c);
 void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing);
-
+void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0);
 
 int min(int a, int b, int c);
 
