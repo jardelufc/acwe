@@ -852,11 +852,11 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
 	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
    int n0,m0,k0,size,fatiasize;
 
-   readmhdraw (filename, &ImageLSori);
+   readmhdraw (filename, &ImageLS);
 
 
-    	initimage(&ImageLS, 420, 281, ImageLSori.k0, 1);
-        crop(&ImageLS, &ImageLSori, 40, 109, 0 );
+    	//initimage(&ImageLS, 420, 281, ImageLSori.k0, 1);
+        //crop(&ImageLS, &ImageLSori, 40, 109, 0 );
 
    m0=ImageLS.m0;
    n0=ImageLS.n0;
@@ -1300,6 +1300,239 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 	
+
+
+
+
+ 
+	//idxPixel = 0;
+
+
+	
+	// pula mn
+	//	memset(pmatriz,0,LARGURA*ALTURA);
+	//pmatriz+=LARGURA*ALTURA;
+	//idxPixel=LARGURA*ALTURA;
+	
+	/*for (k=0;k<(FATIAS-2);k++) {
+		// pula m+1
+
+		//memset(pmatriz,0,LARGURA+1);
+
+		//pmatriz+=(LARGURA+1);*/
+    if(smoothing) { 
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA] & pmatriz2[idxPixel+LARGURA]) |  (pmatriz2[idxPixel] & pmatriz2[idxPixel-1] & pmatriz2[idxPixel+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA-1] & pmatriz2[idxPixel+LARGURA+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA+1] & pmatriz2[idxPixel+LARGURA-1]);
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+
+
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA] & pmatriz2[idxPixel+LARGURA]) |  (pmatriz2[idxPixel] & pmatriz2[idxPixel-1] & pmatriz2[idxPixel+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA-1] & pmatriz2[idxPixel+LARGURA+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA+1] & pmatriz2[idxPixel+LARGURA-1]);
+
+
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
+
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+
+
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
+
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+   if(z%2 == 0){
+        pmatriz =(unsigned char*) matriz2;
+        pmatriz2 =(unsigned char*) matriz;
+    }
+    else{
+        pmatriz = (unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
+    }   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA] & pmatriz2[idxPixel+LARGURA]) |  (pmatriz2[idxPixel] & pmatriz2[idxPixel-1] & pmatriz2[idxPixel+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA-1] & pmatriz2[idxPixel+LARGURA+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA+1] & pmatriz2[idxPixel+LARGURA-1]);
+
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+
+
+
+
+    }
+
+
+
+
+
    /* 
     if(smoothing) {    
     idxPixel=LARGURA*ALTURA;
@@ -1391,8 +1624,8 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
   // }
 
    */     
-       c0=c2/(unsigned long long)p;
-        c1=c3/(unsigned long long)j;
+       if(p) c0=c2/(unsigned long long)p;
+       if(j)  c1=c3/(unsigned long long)j;
 	//if(!(z%10))        {
             //newdsc=dsc(pmatriz,pmatriz2,LARGURA*ALTURA);
             //printf("\n%lf",newdsc); //ret=memcmp(pmatriz3, pmatriz, LARGURA*ALTURA*FATIAS);
