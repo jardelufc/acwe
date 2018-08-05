@@ -678,8 +678,8 @@ fflush(stdout);
            plevel7++;
 				
 	}
-    *pc0=c0/(unsigned long long) nc0;
-    *pc1=c1/(unsigned long long) nc1;
+    if(nc0) *pc0=c0/(unsigned long long) nc0;
+    if(nc1) *pc1=c1/(unsigned long long) nc1;
 	
 }
 void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
@@ -908,11 +908,11 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
    fatiasize=(m0/2)*n0;
 // omp_set_num_threads( 2*x );
 
-//#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j)
+//#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j,pdataLSSplit,pmatrizpartial,pmatriz2partial,ImageLSSlice)
 //{
   	for(i=0;i<(2*x);i++) { 
 
-	   //i = omp_get_thread_num();
+	  // i = omp_get_thread_num();
            printf("numt=%i\n",i);
            pdataLSSplit=ImageLSSplit[i].pdata;
 	   pmatrizpartial=matrizpartial[i];
@@ -1209,7 +1209,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
     unsigned char aux;
 	
-    unsigned int idxPixel,idxPixelStop;
+    unsigned int idxPixel,idxPixelStop,c;
     int ret,z;
     float newdsc,olddsc;
 
@@ -1228,8 +1228,8 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
   // pmatriz3=malloc(LARGURA*ALTURA*FATIAS);
 
     // inicializar varios ponteiros com p-LARGURA, P+LARGURA etc
-    pmatriz =(unsigned char*) matriz;
-    pmatriz2 =(unsigned char*) matriz;
+        pmatriz =(unsigned char*) matriz;
+        pmatriz2 =(unsigned char*) matriz2;
     z=0;
     //matriz2[0]=!matriz[0];
     ret=1;
@@ -1237,14 +1237,14 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
     while(ret && z<iteracoes) {        //iteracoes
 
 	
-    if(z%2 == 0){
+    /*if(z%2 == 0){
         pmatriz =(unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
     }
     else{
         pmatriz = (unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
-    }
+    }*/swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
 	//idxPixel = 0;
         c2=0L;
 	c3=0L;
@@ -1321,14 +1321,19 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 		//pmatriz+=(LARGURA+1);*/
     if(smoothing) { 
-   if(z%2 == 0){
+   /*if(z%2 == 0){
         pmatriz =(unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
     }
     else{
         pmatriz = (unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
-    }   
+
+
+    }*/ 
+      c=0;
+     while(c<smoothing) {
+    swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);   
 		idxPixel=(LARGURA+1);
 
 
@@ -1354,14 +1359,14 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-   if(z%2 == 0){
+   /*if(z%2 == 0){
         pmatriz =(unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
     }
     else{
         pmatriz = (unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
-    }   
+    } */swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);  
 		idxPixel=(LARGURA+1);
 
 
@@ -1389,14 +1394,20 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 
 
-   if(z%2 == 0){
+   /*if(z%2 == 0){
         pmatriz =(unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
     }
     else{
         pmatriz = (unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
-    }   
+
+    }  */
+
+     c++;
+   if(!(c<smoothing))
+      break;
+  swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2); 
 		idxPixel=(LARGURA+1);
 
 
@@ -1422,14 +1433,45 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-   if(z%2 == 0){
+  /* if(z%2 == 0){
         pmatriz =(unsigned char*) matriz2;
         pmatriz2 =(unsigned char*) matriz;
     }
     else{
         pmatriz = (unsigned char*) matriz;
         pmatriz2 =(unsigned char*) matriz2;
-    }   
+    }*/
+
+   swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);   
+		idxPixel=(LARGURA+1);
+
+
+		for(n=0;n<(ALTURA-2);n++) {
+		
+			for(m=0;m<(LARGURA-2);m++) {
+
+				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
+
+
+
+				//pmatriz++;
+				idxPixel++;
+			}
+			//pula 2
+			//memset(pmatriz,0,2);
+			//pmatriz+=2;
+			idxPixel+=2;
+
+		}
+		// pula m-1	
+		//memset(pmatriz,0,LARGURA-1);
+		//pmatriz+=(LARGURA-1);
+		idxPixel+=(LARGURA-1);
+               c++;
+    }
+
+/*
+    swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2); 
 		idxPixel=(LARGURA+1);
 
 
@@ -1455,49 +1497,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-
-
-   if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }   
-		idxPixel=(LARGURA+1);
-
-
-		for(n=0;n<(ALTURA-2);n++) {
-		
-			for(m=0;m<(LARGURA-2);m++) {
-
-				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
-
-
-
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}
-		// pula m-1	
-		//memset(pmatriz,0,LARGURA-1);
-		//pmatriz+=(LARGURA-1);
-		idxPixel+=(LARGURA-1);
-
-   if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }   
+  swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2); 
 		idxPixel=(LARGURA+1);
 
 
@@ -1524,7 +1524,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-
+*/
 
 
     }
@@ -1648,6 +1648,12 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 }
 
+void swap (unsigned char **p1, unsigned char **p2) {
+   unsigned char *ptemp;
+   ptemp=*p1;
+   *p1=*p2;
+   *p2=ptemp;
+}
 
 int min(int a, int b, int c){
     if( a<b){
