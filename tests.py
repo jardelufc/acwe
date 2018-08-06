@@ -116,7 +116,42 @@ def test_confocal3d():
     
     # Visual evolution.
     morphsnakes.evolve_visual3d(macwe, num_iters=200)
-	
+
+def bmp2raw():
+
+
+
+    path = 'lungs'
+
+    #if levelset is not None:
+    #    msnake.levelset = levelset
+    #imgori = np.load("testimages/confocal.npy")
+    #img=np.copy(imgori[109:390,40:250])
+
+    #levelset = circle_levelset(img.shape, (30, 50, 80), 25)
+
+    x=np.uint32(np.ones((205,512,512)))
+    #np.int_(u)
+    #np.ndarray.tofile(x,"todo.raw")
+
+    n=0
+    for file in sorted(os.listdir(path)):
+       current = os.path.join(path, file)
+       if os.path.isfile(current):
+           #data = open(current, "rb")
+           #img = imread(current)[...,0]/255.0
+		   
+		   
+ 		   # Load the image.
+           temp=imread(current)[...,0]
+           x[n] = temp
+           n=n+1
+           print (current)
+
+    print(n)
+    np.ndarray.tofile(x,"full.raw")
+    #x = x.reshape([205, 281,420])
+
 
 def doall():
 
@@ -382,6 +417,7 @@ if __name__ == '__main__':
     #test_starfish()
     #test_lakes()
     #doall()
+    bmp2raw()
     #test_confocal3d()
-    visual3d()
-    ppl.show()
+    #visual3d()
+    #ppl.show()

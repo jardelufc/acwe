@@ -445,7 +445,7 @@ int readmhdraw (char *name, TImage *Image) {
      while(!feof(fp)) {
 		
 	fread(&aux,4,1,fp);
-	*pdata=(unsigned char) aux;
+	*pdata=(unsigned char) (aux);
 	pdata++;		
      }	
     }
@@ -624,6 +624,7 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
    
 
 	for (k=0;k<k0;k++) {
+		psrc=tsrc->pdata+ik0*n0src*m0src+in0*m0src+im0 + k*n0src*m0src ;
 		for(n=0;n<n0;n++) {
 			
 		     	memcpy(p,psrc,m0);
@@ -738,7 +739,7 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
 }
 void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
- TImage ImageLSSplit[64],ImageLS;
+ TImage ImageLSSplit[64],ImageLS,ImageLSori;
    unsigned char  *matriz;
 
 	unsigned long long c0;
@@ -748,9 +749,12 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
 	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
    int n0,m0,k0,size;
 
-   readmhdraw (filename, &ImageLS);
+   readmhdraw (filename, &ImageLSori);
 
 
+   //img=img[109:390,40:460]
+   initimage(&ImageLS, 420, 281, ImageLSori.k0, 1);
+   crop(&ImageLS, &ImageLSori, 40, 109, 0 );
 
    m0=ImageLS.m0;
    n0=ImageLS.n0;
