@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 	//printf("c0=%llu \n",c0);
     	//printf("c1=%llu \n",c1);
     	//Boundary( &ImageLS, matriz,matriz2,c0,c1, iteracoes,smoothing);
-        acwex2d(x,&argv[1][0], &Image, iteracoes,smoothing);
+        acwex(x,&argv[1][0], &Image, iteracoes,smoothing);
 	//cleanborder(matriz,420,281,205, 0);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
@@ -254,10 +254,10 @@ int main(int argc, char **argv)
 	for(i=0;i<(2*x);i++)
 		free(matrizpartial[i]);*/
 
-        sprintf(szCommand,"python raw2npy.py %s %s.npy %d %d %d",argv[3],argv[3],Image.k0,Image.n0,Image.m0); 
+        sprintf(szCommand,"python3 raw2npy.py %s %s.npy %d %d %d",argv[3],argv[3],Image.k0,Image.n0,Image.m0); 
         printf("%s\n",szCommand);
         system(szCommand);
-        sprintf(szCommand,"python mostrarnpy.py %s.npy",argv[3]); 
+        sprintf(szCommand,"python3 mostrarnpy.py %s.npy",argv[3]); 
         printf("%s\n",szCommand);
         system(szCommand);
 
