@@ -1182,6 +1182,59 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
 
 }
 
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void acwebin(char *filename, TImage *Image) {
+
+ TImage ImageLSSplit[64],ImageLS,ImageLSori;
+   unsigned char  *matriz;
+
+	unsigned long long c0;
+	unsigned long long c1;
+   	int mx, ny, kz,i;
+
+	unsigned char *matrizlssplit[64], *matrizpartial[64], *matriz2partial[64];
+   int n0,m0,k0,size;
+
+   readmhdraw (filename, &ImageLS);
+
+   m0=ImageLS.m0;
+   n0=ImageLS.n0;
+   k0=ImageLS.k0;
+
+   size=n0*m0*k0;
+
+   matriz=malloc(size*sizeof(char));
+   if(matriz==NULL) {
+	printf("error memory allocation\n");
+	exit(0);
+   }
+
+   memset(matriz,0,size);
+   binarize(ImageLS.pdata, matriz,ImageLS.m0,ImageLS.n0,ImageLS.k0, 100);
+   //erosion(matriz, matriz,ImageLS.m0,ImageLS.n0,ImageLS.k0);
+   cleanborder(matriz,ImageLS.m0,ImageLS.n0,ImageLS.k0, 35);
+
+   //printf("c0=%llu \n",c0);
+   //printf("c1=%llu \n",c1);
+   //Boundary( &ImageLS, matriz,matriz2,c0,c1, maxiteracoes);
+   Image->pdata=matriz;
+   Image->n0=ImageLS.n0;
+   Image->m0=ImageLS.m0;
+   Image->k0=ImageLS.k0;
+   strcpy(Image->szFileRawName,ImageLS.szFileRawName);
+   //free(matriz2);
+   free(ImageLS.pdata);
+
+}
+
 /**
 @brief
 @param

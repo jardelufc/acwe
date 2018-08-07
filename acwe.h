@@ -43,5 +43,6 @@ void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0);
 void swap (unsigned char **p1, unsigned char **p2);
 void freeimage(TImage *image);
 void copyimage(TImage *dest, TImage *source);
+void acwebin(char *filename, TImage *Image);
 
 #endif

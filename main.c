@@ -16,18 +16,21 @@ int main(int argc, char **argv)
         char szCommand[200];
 	
 	// read max number if iterations from command line parameters
-        sscanf(argv[3],"%d",&iteracoes);
+        //sscanf(argv[3],"%d",&iteracoes);
 	// read number of divisions of for splitting each lung from command line parameters
-        sscanf(argv[4],"%d",&x);
+        //sscanf(argv[4],"%d",&x);
 	// read number of smoothing (closing/opening morph) passes for each iteration, from command line parameters
-        sscanf(argv[5],"%d",&smoothing);
+        //sscanf(argv[5],"%d",&smoothing);
  	
         // starts timer
    	time(&timer);  /* get current time; same as: timer = time(NULL)  */
   	seconds = difftime(timer,mktime(&y2k));
 
         // load the input image in mhd-raw format from the disk, segments it an return the segmented image in Image struct
-        acwex(x,&argv[1][0], &Image, iteracoes,smoothing);
+        //acwex(x,&argv[1][0], &Image, iteracoes,smoothing);
+
+        // binary segmentation
+        acwebin(&argv[1][0], &Image);
 
   	time(&timer);  /* get current time; same as: timer = time(NULL)  */
         // calculate and print time passed during acwex execution
