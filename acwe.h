@@ -23,7 +23,7 @@
 void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing);
 void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing);
 void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 );
-int saveraw(char *name, TImage *Image);
+int savemhdraw(char *name, TImage *Image);
 int sphere_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0);
 void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0);
 void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar);
@@ -41,16 +41,7 @@ int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, i
 void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing);
 void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0);
 void swap (unsigned char **p1, unsigned char **p2);
+void freeimage(TImage *image);
+void copyimage(TImage *dest, TImage *source);
 
-int min(int a, int b, int c);
-
-int max(int a, int b, int c);
-
-int maxsi(int a, int b, int c, int d);
-
-int minis(int a, int b, int c, int d);
-
-int operacoemorfsi(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft);
-
-int operacoemorfis(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft);
 #endif

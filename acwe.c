@@ -1,6 +1,14 @@
+/**
+@file acwe.c
+@brief Integer Morphological 2d and 3d Active Contour Without Edges implementation based on python implementation https://github.com/pmneila/morphsnakes
+@author Prof. Jardel Silveira
+@date July, 7th, 2018
+*/
+
 
 #include "acwe.h"
 #include <omp.h>
+
 const unsigned char morphvecs[9][9]={
 {0,1,2,12,13,14,24,25,26},
 {6,7,8,12,13,14,18,19,20},
@@ -12,6 +20,14 @@ const unsigned char morphvecs[9][9]={
 {1,4,7,10,13,16,19,22,25},
 {3,4,5,12,13,14,21,22,23}};
 
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void window3d(unsigned char *pw, TImage *Image, unsigned int pos) {
    int n0,m0;
    unsigned char *pdata;
@@ -59,10 +75,15 @@ void window3d(unsigned char *pw, TImage *Image, unsigned int pos) {
    pw[24]=pdata[0];
    pw[25]=pdata[1];
    pw[26]=pdata[2];
-
-
-
 }
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 unsigned char minmax9(unsigned char *p) {
    unsigned char x,y,i;
    unsigned const char *pop;
@@ -78,6 +99,13 @@ unsigned char minmax9(unsigned char *p) {
 
 }
 
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 unsigned char maxmin9(unsigned char *p) {
    unsigned char x,y,i;
    unsigned const char *pop;
@@ -93,161 +121,13 @@ unsigned char maxmin9(unsigned char *p) {
 
 }
 
-
-
-int initimage(TImage *image, int m0, int n0, int k0, int datasize) {
-	image->m0=m0;
-	image->n0=n0;
-	image->k0=k0;
-	image->pdata=malloc(n0*m0*k0);
-	image->datasize=datasize;
-	return 1; //(int) image->pdata;
-}
-
-void freeimage(TImage *image) {
-	free(image->pdata);
-}
-
-void copyimage(TImage *dest, TImage *source) {
-	//memcpy (dest->pdata,source->pdata,dest)
-	
-}
-
-int saveraw(char *name, TImage *Image) {
-	int i,size;
-	unsigned int aux;
-	FILE *foutput;
-        unsigned char *p;
-
-        p=Image->pdata;
-        size=Image->m0*Image->n0*Image->k0;
-	
-	foutput=fopen(name, "wb");
-	if(foutput==NULL) {
-		printf("error opening file\n");
-		exit(0);
-	}
-
-
-	for(i=0;i<(size);i++) {
-		aux=(unsigned int)*p;
-		fwrite(&aux, sizeof(int),1,foutput);
-		p++;
-	}
-	fclose(foutput);
-	
-
-}
-
-
-
-void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
-	
-	/*
-#define LARGURA 420 // m
-#define ALTURA 281  // n
-#define FATIAS 205 // k
+/**
+@brief
+@param
+@param
+@param
+@param
 */
-
-   unsigned char *p[4],*pdest[4];
-   int n,k,i;
-   int offset[4];
-   offset[0]=0;
-   offset[1]=(m0/2);
-   offset[2]=m0*n0*(k0/2);
-   offset[3]=offset[2]+offset[1];
-   i=0;
-   
-   for(i=0;i<4;i++) { 
-      pdest[i]=plsvec[i];
-	  p[i]=pls+offset[i];
-   }
-	for (k=0;k<(k0/2);k++) {
-		for(n=0;n<n0;n++) {
-			for(i=0;i<4;i++) {
-		     	memcpy(pdest[i],p[i],m0/2);
-				pdest[i]+=(m0/2);
-				p[i]+=m0;
-			}
-			
-		}		
-	}
-	
-}
-
-int sphere_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0) {
-	
-	int msqraio,sqraio;
-	sqraio=raio*raio;
-	int m,n,k;
-	
-	
-	for (k=0;k<k0;k++) {
-		for(n=0;n<n0;n++) {
-			for(m=0;m<m0;m++) {
-                                //printf("%d %d %d\n",m,n,k);
-				msqraio=0;
-				msqraio+=((m-centerm)*(m-centerm));
-				msqraio+=((n-centern)*(n-centern));
-				msqraio+=((k-centerk)*(k-centerk));	
-				if(msqraio<sqraio)
-				   *p=1;
-				/*else
-					*p=0;*/
-				p++;
-			}
-		 }
-	}
-      // printf("Dedel");
-      // fflush(stdout);
-}
-
-int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0, int a, int b, int c) {
-	
-	int msqraio,sqraio;
-	sqraio=raio*raio;
-	int m,n,k;
-	
-	
-	for (k=0;k<k0;k++) {
-		for(n=0;n<n0;n++) {
-			for(m=0;m<m0;m++) {
-				msqraio=0;
-				msqraio+=((m-centerm)*(m-centerm)) /  (a*a);
-				msqraio+=((n-centern)*(n-centern)) / (b*b);
-				msqraio+=((k-centerk)*(k-centerk)) / (c*c);	
-				if(msqraio<sqraio)
-					*p=1;
-				/*else
-					*p=0;*/
-				p++;
-			}
-		 }
-	}
-}
-
-void binarize(unsigned char *p, unsigned char *pout,int m0, int n0, int k0, unsigned int limiar) {
-		
-	int m,n,k;
-	
-	
-	for (k=0;k<k0;k++) {
-		for(n=0;n<n0;n++) {
-			for(m=0;m<m0;m++) {
-				if(*p>limiar)
-					*pout=0;
-				else
-					*pout=1;
-				p++;
-				pout++;
-			}
-		}
-	}
-	
-	
-}
-
-
 void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0) {
 		
 
@@ -286,107 +166,58 @@ void erosion(unsigned char *p, unsigned char *pout,int m0, int n0, int k0) {
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(m0-1);
 	}
-   
-
-
-
-	
-}
-void cleanexterior(void) {
-	
-	
-}
-void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar) {
-		
-	int m,n,k;
-	
-	int mx,ny,kz;
-	
-	int c;
-        unsigned char *pflag;
-	
-	c=0;
-	
-	mx=0;
-	ny=0;
-	kz=0;
-
-
-
-       pflag=malloc(m0);
-
-	
-	for (k=0;k<k0;k++) {
-       memset(pflag,0,m0);
-		for(n=0;n<n0;n++) {
-			for(m=0;m<m0;m++) {
-				if(*p<limiar){
-					if(pflag[m]){mx+=m;
-					ny+=n;
-					kz+=k;
-					c++;}
-				}else
-				  pflag[m]=1;
-					
-				p++;
-				
-			}
-		}
-	}
-	
-	mx/=c;
-	ny/=c;
-	kz/=c;
-	
-	*pm=mx;
-	*pn=ny;
-	*pk=kz;
-	
-}
-
-void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0){
-   unsigned char *pv,*pvsrc;
-   int n,k,i;
-   int offset[4];
-   offset[0]=0;
-   offset[1]=((m0/2));
-   offset[2]=m0*n0*((k0/2));
-   offset[3]=offset[2]+offset[1];
-   i=0;
-   pv=v;
-   pvsrc=vsrc;
-   
-   pv+=offset[position];
-   
-	for (k=0;k<(k0/2);k++) {
-		for(n=0;n<n0;n++) {
-			//for(i=0;i<4;i++) {
-		     	memcpy(pv,pvsrc,m0/2);
-				pvsrc+=(m0/2);
-				pv+=m0;
-			//}
-		}		
-	}
 	
 }
 
 
-
-// funcao que toma uma imagem bidimensional e apaga os pixels
-// do interior do contor. faz isso seguindo as bordas de baixo para cima, de cima para baixo
-// Isso pode substituir as operações morfológicas ?
-
-void cleaninterior (void) {
-	
-	
-	
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+int initimage(TImage *image, int m0, int n0, int k0, int datasize) {
+   image->m0=m0;
+   image->n0=n0;
+   image->k0=k0;
+   image->pdata=malloc(n0*m0*k0);
+   image->datasize=datasize;
+   return 1; //(int) image->pdata;
 }
 
+/**
+@brief Free memory used by and image
+@param image the image
+
+*/
+void freeimage(TImage *image) {
+	free(image->pdata);
+}
+
+/**
+@brief copy data from source to dest
+@param dest destination image
+@param source source image
+*/
+void copyimage(TImage *dest, TImage *source) {
+	memcpy (dest->pdata,source->pdata,dest->n0*dest->m0*dest->k0);
+}
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 int readmhdraw (char *name, TImage *Image) {
       FILE *fp;
       unsigned short shortaux;
       unsigned char *p;
       unsigned int aux;
+      char localname[100];
 
       char sz1[100],sz2[100],sz3[100],sz4[100], szElType[100];
       int n0,m0,k0;
@@ -396,7 +227,9 @@ int readmhdraw (char *name, TImage *Image) {
       FILE *f;
       unsigned char *pdata;
 
-      f=fopen(name, "rb");
+     strcpy(localname,name);
+     strcat(localname,".mhd");
+      f=fopen(localname, "rb");
      if(f==NULL) {
 		printf("error opening file\n");
 		return -1;
@@ -453,10 +286,80 @@ int readmhdraw (char *name, TImage *Image) {
     fclose(f);
 
 }
+
 /**
+@brief
+@param
+@param
+@param
+@param
+*/
+int savemhdraw(char *name, TImage *Image) {
+   int i,size;
+   unsigned int aux;
+   FILE *foutput,*fmhd;
+   unsigned char *p;
+   char localname[100];
+
+   p=Image->pdata;
+   size=Image->m0*Image->n0*Image->k0;
+
+   strcpy(localname,name);	
+   strcat(localname,".raw");
+   foutput=fopen(localname, "wb");
+   if(foutput==NULL) {
+      printf("error opening file\n");
+      exit(0);
+   }
+
+   strcpy(localname,name);	
+   strcat(localname,".mhd");
+   fmhd=fopen(localname, "w");
+   if(fmhd==NULL) {
+      printf("error opening file\n");
+      exit(0);
+   }
+
+  fprintf(fmhd, "ObjectType = Image\n");
+  fprintf(fmhd, "NDims = 3\n");
+  fprintf(fmhd, "BinaryData = True\n");
+  fprintf(fmhd, "BinaryDataByteOrderMSB = False\n"); // ????
+  fprintf(fmhd, "CompressedData = False");
+  fprintf(fmhd, "DimSize = %d %d %d\n",Image->m0,Image->n0,Image->k0);
+ // if(Image->datasize==4) 
+     fprintf(fmhd, "ElementType = MET_LONG\n"); 
+ // else if(Image->datasize==2) 
+ //    fprintf(fmhd, "ElementType = MET_SHORT\n"); 
+  fprintf(fmhd, "ElementDataFile = %s.raw",name);   
+/*
+
+
+CompressedDataSize = 451779
+TransformMatrix = 1 0 0 0 1 0 0 0 1
+Offset = -157.67773 -311.67773 -438.39999999999998
+CenterOfRotation = 0 0 0
+AnatomicalOrientation = RAI
+ElementSpacing = 0.64453125 0.64453125 1.7999999523162842
 
 */
-void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
+
+
+   for(i=0;i<(size);i++) {
+      aux=(unsigned int)*p;
+      fwrite(&aux, sizeof(int),1,foutput);
+      p++;
+   }
+   fclose(foutput);
+   fclose(fmhd);
+}
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
 
    unsigned char *p[64],*pdest[64];
    int k,i,n;
@@ -485,6 +388,17 @@ void splitby2x(int x,unsigned char *pls, unsigned char **plsvec, int m0, int n0,
    }
 }
 
+/**
+@brief
+@param x
+@param v
+@param vsrc
+@param position
+@param m0
+@param n0
+@param l0
+
+*/
 void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0){
    unsigned char *pv,*pvsrc;
    int n,k,i;
@@ -495,13 +409,99 @@ void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, in
    for(i=2;i<(2*x);i++) {
 	  offset[i]=(i/2)*m0*n0*(k0/x)+offset[i%2];
    }
+
+   i=0;
+
+   pv=v;
+
+   pvsrc=vsrc;
+
+   
+
+   pv+=offset[position];
+
+   
+
+	for (k=0;k<(k0/x);k++) {
+
+		for(n=0;n<n0;n++) {
+
+			//for(i=0;i<4;i++) {
+
+		     	memcpy(pv,pvsrc,m0/2);
+
+				pvsrc+=(m0/2);
+
+				pv+=m0;
+
+			//}
+
+		}		
+
+	}
+
+	
+
+}
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void splitbyfour(unsigned char *pls, unsigned char **plsvec, int m0, int n0, int k0 ) {
+	
+   unsigned char *p[4],*pdest[4];
+   int n,k,i;
+   int offset[4];
+   offset[0]=0;
+   offset[1]=(m0/2);
+   offset[2]=m0*n0*(k0/2);
+   offset[3]=offset[2]+offset[1];
+   i=0;
+   
+   for(i=0;i<4;i++) { 
+      pdest[i]=plsvec[i];
+	  p[i]=pls+offset[i];
+   }
+	for (k=0;k<(k0/2);k++) {
+		for(n=0;n<n0;n++) {
+			for(i=0;i<4;i++) {
+		     	memcpy(pdest[i],p[i],m0/2);
+				pdest[i]+=(m0/2);
+				p[i]+=m0;
+			}
+			
+		}		
+	}
+	
+}
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void copy4volume(unsigned char *v, unsigned char *vsrc, int position, int m0, int n0, int k0){
+   unsigned char *pv,*pvsrc;
+   int n,k,i;
+   int offset[4];
+   offset[0]=0;
+   offset[1]=((m0/2));
+   offset[2]=m0*n0*((k0/2));
+   offset[3]=offset[2]+offset[1];
    i=0;
    pv=v;
    pvsrc=vsrc;
    
    pv+=offset[position];
    
-	for (k=0;k<(k0/x);k++) {
+	for (k=0;k<(k0/2);k++) {
 		for(n=0;n<n0;n++) {
 			//for(i=0;i<4;i++) {
 		     	memcpy(pv,pvsrc,m0/2);
@@ -512,10 +512,198 @@ void copy2xvolume(int x, unsigned char *v, unsigned char *vsrc, int position, in
 	}
 	
 }
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+int sphere_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0) {
+	
+	int msqraio,sqraio;
+	sqraio=raio*raio;
+	int m,n,k;
+	
+	
+	for (k=0;k<k0;k++) {
+		for(n=0;n<n0;n++) {
+			for(m=0;m<m0;m++) {
+                                //printf("%d %d %d\n",m,n,k);
+				msqraio=0;
+				msqraio+=((m-centerm)*(m-centerm));
+				msqraio+=((n-centern)*(n-centern));
+				msqraio+=((k-centerk)*(k-centerk));	
+				if(msqraio<sqraio)
+				   *p=1;
+				/*else
+					*p=0;*/
+				p++;
+			}
+		 }
+	}
+      // printf("Dedel");
+      // fflush(stdout);
+}
 
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+int ellipsoid_levelset(unsigned char *p,int centerm, int centern, int centerk, int raio, int m0, int n0, int k0, int a, int b, int c) {
+	
+	int msqraio,sqraio;
+	sqraio=raio*raio;
+	int m,n,k;
+	
+	
+	for (k=0;k<k0;k++) {
+		for(n=0;n<n0;n++) {
+			for(m=0;m<m0;m++) {
+				msqraio=0;
+				msqraio+=((m-centerm)*(m-centerm)) /  (a*a);
+				msqraio+=((n-centern)*(n-centern)) / (b*b);
+				msqraio+=((k-centerk)*(k-centerk)) / (c*c);	
+				if(msqraio<sqraio)
+					*p=1;
+				/*else
+					*p=0;*/
+				p++;
+			}
+		 }
+	}
+}
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void binarize(unsigned char *p, unsigned char *pout,int m0, int n0, int k0, unsigned int limiar) {
+		
+	int m,n,k;
+	
+	
+	for (k=0;k<k0;k++) {
+		for(n=0;n<n0;n++) {
+			for(m=0;m<m0;m++) {
+				if(*p>limiar)
+					*pout=0;
+				else
+					*pout=1;
+				p++;
+				pout++;
+			}
+		}
+	}
+	
+	
+}
+
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void cleanexterior(void) {
+	
+	
+}
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, int k0, int limiar) {
+		
+	int m,n,k;
+	
+	int mx,ny,kz;
+	
+	int c;
+        unsigned char *pflag;
+	
+	c=0;
+	
+	mx=0;
+	ny=0;
+	kz=0;
+
+
+
+       pflag=malloc(m0);
+
+	
+	for (k=0;k<k0;k++) {
+       memset(pflag,0,m0);
+		for(n=0;n<n0;n++) {
+			for(m=0;m<m0;m++) {
+				if(*p<limiar){
+					if(pflag[m]){mx+=m;
+					ny+=n;
+					kz+=k;
+					c++;}
+				}else
+				  pflag[m]=1;
+					
+				p++;
+				
+			}
+		}
+	}
+	
+	mx/=c;
+	ny/=c;
+	kz/=c;
+	
+	*pm=mx;
+	*pn=ny;
+	*pk=kz;
+	
+}
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+// funcao que toma uma imagem bidimensional e apaga os pixels
+// do interior do contor. faz isso seguindo as bordas de baixo para cima, de cima para baixo
+// Isso pode substituir as operações morfológicas ?
+
+void cleaninterior (void) {
+	
+	
+	
+}
+
+
+
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 // pre-segmentar e entregar o level set do binario apenas para limpar
-
-
 // limiar=20
 void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
 	
@@ -566,8 +754,13 @@ void cleanborder(unsigned char *img,int m0, int n0, int k0, int limiar) {
 	   }
     	}
 }
+
 /**
-@brief return similaritie between two image vectors
+@brief
+@param
+@param
+@param
+@param
 */
 float dsc(unsigned char *img,unsigned char *imggold,int size) {
 	int k;
@@ -599,13 +792,17 @@ float dsc(unsigned char *img,unsigned char *imggold,int size) {
 	return DSC;
 }
 
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
 	
-	/*
-#define LARGURA 420 // m
-#define ALTURA 281  // n
-#define FATIAS 205 // k
-*/
+
 
    unsigned char *p,*psrc;
    int n,k,i,m0,m0src,n0,n0src,k0,k0src;
@@ -637,14 +834,15 @@ void crop(TImage *t, TImage *tsrc, int im0, int in0, int ik0 ) {
 }
 
 
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void density(TImage *t, unsigned char *level7,unsigned long long *pc0, unsigned long long *pc1) {
 	
-	/*
-#define LARGURA 420 // m
-#define ALTURA 281  // n
-#define FATIAS 205 // k
-*/
-
    unsigned char *p,*plevel7;
    int nc0,nc1,i,m0,n0,k0;
    unsigned long long c1,c0;
@@ -683,6 +881,14 @@ fflush(stdout);
     if(nc1) *pc1=c1/(unsigned long long) nc1;
 	
 }
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
    TImage ImageLS;
@@ -737,6 +943,14 @@ void acwe(char *filename, TImage *Image, unsigned int maxiteracoes, int smoothin
    free(ImageLS.pdata);
 
 }
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
  TImage ImageLSSplit[64],ImageLS,ImageLSori;
@@ -843,7 +1057,13 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
 }
 
 
-
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int smoothing){
 
  TImage ImageLSSplit[64],ImageLS,ImageLSSlice, ImageLSori;
@@ -962,7 +1182,29 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
 
 }
 
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
+void swap (unsigned char **p1, unsigned char **p2) {
+   unsigned char *ptemp;
+   ptemp=*p1;
+   *p1=*p2;
+   *p2=ptemp;
+}
 
+
+
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing){
 
     unsigned char *matrizLS;
@@ -1013,14 +1255,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
     while(ret && z<iteracoes) {        //iteracoes
 
 	
-    /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }*/ swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
+ swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
 
 	//idxPixel = 0;
         c2=0L;
@@ -1083,19 +1318,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
       c=0;
      while(c<smoothing) {
     
-   /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
 
-    }
-
-    else{
-
-        pmatriz = (unsigned char*) matriz2;
-
-        pmatriz2 =(unsigned char*) matriz;
-
-    }*/
     idxPixel=LARGURA*ALTURA;  
     swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
 
@@ -1132,14 +1355,7 @@ void Boundary( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsig
     
 
 
-   /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }*/swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
+swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
        Image->pdata=pmatriz2;
        idxPixel=LARGURA*ALTURA;
 	for (k=0;k<(FATIAS-2);k++) {
@@ -1269,7 +1485,13 @@ swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);
 
 }
 
-
+/**
+@brief
+@param
+@param
+@param
+@param
+*/
 void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,unsigned long long c0,unsigned long long c1, int iteracoes, int smoothing){
 
     unsigned char *matrizLS;
@@ -1404,16 +1626,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 		//pmatriz+=(LARGURA+1);*/
     if(smoothing) { 
-   /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
 
-
-    }*/ 
       c=0;
      while(c<smoothing) {
     swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);   
@@ -1442,14 +1655,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-   /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    } */swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);  
+swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);  
 		idxPixel=(LARGURA+1);
 
 
@@ -1477,15 +1683,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 
 
-   /*if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
 
-    }  */
 
      c++;
    if(!(c<smoothing))
@@ -1516,14 +1714,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 		//pmatriz+=(LARGURA-1);
 		idxPixel+=(LARGURA-1);
 
-  /* if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }*/
+
 
    swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2);   
 		idxPixel=(LARGURA+1);
@@ -1553,61 +1744,7 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
                c++;
     }
 
-/*
-    swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2); 
-		idxPixel=(LARGURA+1);
 
-
-		for(n=0;n<(ALTURA-2);n++) {
-		
-			for(m=0;m<(LARGURA-2);m++) {
-
-				pmatriz[idxPixel] = (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA] | pmatriz2[idxPixel+LARGURA]) &  (pmatriz2[idxPixel] | pmatriz2[idxPixel-1] | pmatriz2[idxPixel+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA-1] | pmatriz2[idxPixel+LARGURA+1]) & (pmatriz2[idxPixel] | pmatriz2[idxPixel-LARGURA+1] | pmatriz2[idxPixel+LARGURA-1]);
-
-
-
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}
-		// pula m-1	
-		//memset(pmatriz,0,LARGURA-1);
-		//pmatriz+=(LARGURA-1);
-		idxPixel+=(LARGURA-1);
-
-  swap((unsigned char **)&pmatriz,(unsigned char **)&pmatriz2); 
-		idxPixel=(LARGURA+1);
-
-
-		for(n=0;n<(ALTURA-2);n++) {
-		
-			for(m=0;m<(LARGURA-2);m++) {
-
-
-				pmatriz[idxPixel] = (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA] & pmatriz2[idxPixel+LARGURA]) |  (pmatriz2[idxPixel] & pmatriz2[idxPixel-1] & pmatriz2[idxPixel+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA-1] & pmatriz2[idxPixel+LARGURA+1]) | (pmatriz2[idxPixel] & pmatriz2[idxPixel-LARGURA+1] & pmatriz2[idxPixel+LARGURA-1]);
-
-
-
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}
-		// pula m-1	
-		//memset(pmatriz,0,LARGURA-1);
-		//pmatriz+=(LARGURA-1);
-		idxPixel+=(LARGURA-1);
-
-*/
 
 
     }
@@ -1616,97 +1753,6 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
 
 
 
-   /* 
-    if(smoothing) {    
-    idxPixel=LARGURA*ALTURA;
-   if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-
-    }
-
-    else{
-
-        pmatriz = (unsigned char*) matriz2;
-
-        pmatriz2 =(unsigned char*) matriz;
-
-    }
-
-        Image->pdata=pmatriz2;
-	for (k=0;k<(FATIAS-2);k++) {
-		// pula m+1
-		//memset(pmatriz,0,LARGURA+1);
-		//pmatriz+=(LARGURA+1);
-		idxPixel+=(LARGURA+1);
-		idxPixelStop=idxPixel;
-
-		for(n=0;n<(ALTURA-2);n++) {
-		
-			for(m=0;m<(LARGURA-2);m++) {
-
-				// processa o pixel
-                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
-                               pmatriz[idxPixel]=minmax9(window);
-				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}
-		// pula m-1	
-		//memset(pmatriz,0,LARGURA-1);
-		//pmatriz+=(LARGURA-1);
-		idxPixel+=(LARGURA-1);
-	}
-    
-        idxPixel=LARGURA*ALTURA;
-   if(z%2 == 0){
-        pmatriz =(unsigned char*) matriz2;
-        pmatriz2 =(unsigned char*) matriz;
-    }
-    else{
-        pmatriz = (unsigned char*) matriz;
-        pmatriz2 =(unsigned char*) matriz2;
-    }
-       Image->pdata=pmatriz2;
-
-	for (k=0;k<(FATIAS-2);k++) {
-		// pula m+1
-		//memset(pmatriz,0,LARGURA+1);
-		//pmatriz+=(LARGURA+1);
-		idxPixel+=(LARGURA+1);
-		idxPixelStop=idxPixel;
-
-		for(n=0;n<(ALTURA-2);n++) {
-		
-			for(m=0;m<(LARGURA-2);m++) {
-
-				// processa o pixel
-                               window3d(window,Image,idxPixel-(LARGURA*ALTURA)-LARGURA-1);
-                               pmatriz[idxPixel]=maxmin9(window);
-				//pmatriz2[idxPixel]=operacoemorfsi(pmatriz[idxPixel],pmatriz[idxPixel-512],pmatriz[idxPixel+512],pmatriz[idxPixel-1],pmatriz[idxPixel+1],pmatriz[idxPixel-511],pmatriz[idxPixel-513],pmatriz[idxPixel+513],pmatriz[idxPixel+511]);			
-				//pmatriz++;
-				idxPixel++;
-			}
-			//pula 2
-			//memset(pmatriz,0,2);
-			//pmatriz+=2;
-			idxPixel+=2;
-
-		}
-		// pula m-1	
-		//memset(pmatriz,0,LARGURA-1);
-		//pmatriz+=(LARGURA-1);
-		idxPixel+=(LARGURA-1);
-	}
-  // }
-
-   */     
        if(p) c0=c2/(unsigned long long)p;
        if(j)  c1=c3/(unsigned long long)j;
 	//if(!(z%10))        {
@@ -1730,78 +1776,5 @@ void Boundary2d( TImage *Image, unsigned char *matriz,unsigned char *matriz2,uns
   //Image->pdata=matrizLS;
 
 }
-
-void swap (unsigned char **p1, unsigned char **p2) {
-   unsigned char *ptemp;
-   ptemp=*p1;
-   *p1=*p2;
-   *p2=ptemp;
-}
-
-int min(int a, int b, int c){
-    if( a<b){
-        if(a<c) return a;
-        else return c;
-    }
-    else{
-        if(b<c) return b;
-        else return c;
-    }
-}
-
-int max(int a, int b, int c){
-    if( a>b){
-        if(a>c) return a;
-        else return c;
-    }
-    else{
-        if(b>c) return b;
-        else return c;
-    }
-}
-
-int maxsi(int a, int b, int c, int d){
-    int l = max(a,b,c);
-    if(d>l) return d;
-    else return l;
-}
-
-int minis(int a, int b, int c, int d){
-    int l = min(a,b,c);
-    if(l<d) return l;
-    else return d;
-}
-
-int operacoemorfsi(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft){
-    int a = min(up,pixel,down);
-    int b = min(left,pixel,right);
-    int c = min(downleft,pixel,upright);
-    int d = min(upleft,pixel,downright);
-
-    int e = maxsi(a,b,c,d);
-    return e;
-}
-
-int operacoemorfis(int pixel, int up, int down, int left, int right, int upright, int upleft, int downright, int downleft){
-    int a = max(up,pixel,down);
-    int b = max(left,pixel,right);
-    int c = max(downleft,pixel,upright);
-    int d = max(upleft,pixel,downright);
-
-    int e = minis(a,b,c,d);
-    return e;
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
