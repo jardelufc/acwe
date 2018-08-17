@@ -143,7 +143,7 @@ def bmp2raw():
 		   
 		   
  		   # Load the image.
-           temp=imread(current)[...,0]
+           temp=imread(current)[...,2]
            x[n] = temp
            n=n+1
            print (current)

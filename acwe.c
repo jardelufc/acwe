@@ -214,7 +214,7 @@ void copyimage(TImage *dest, TImage *source) {
 */
 int readmhdraw (char *name, TImage *Image) {
       FILE *fp;
-      unsigned short shortaux;
+      short shortaux,min,max;
       unsigned char *p;
       unsigned int aux;
       char localname[100];
@@ -267,12 +267,37 @@ int readmhdraw (char *name, TImage *Image) {
     
     if(!memcmp(szElType,"MET_SHORT",9)) {
      Image->datasize=2;
+    /* min=0xFFFF;
+     max=0;
      while(!feof(fp)) {
 		
 	fread(&shortaux,2,1,fp);
-	*pdata=(unsigned char) (shortaux*(unsigned short)0xFF/(unsigned short)0xFFFF);
+	if(shortaux>=max)
+           max=shortaux;
+	if(shortaux<=min)
+           min=shortaux;
+	//*pdata=(unsigned char) (shortaux*(unsigned short)0xFF/(unsigned short)0xFFFF);
+	//pdata++;		
+     }	
+     rewind(fp);*/
+     min=-600-1500/2;
+     max=-600+1500/2;
+     printf("min=%d max=%d\n", min, max);
+     while(!feof(fp)) {
+
+		
+	fread(&shortaux,2,1,fp);
+	if(shortaux<min) *pdata=0;
+        else if(shortaux>max) *pdata=0xFF;
+        else *pdata=(unsigned char)255*(shortaux-min)/(max-min);
+         
+
+
+        
+	//*pdata=(unsigned char) (shortaux*(unsigned short)min/(unsigned short)max);
 	pdata++;		
      }	
+
      } else {
      Image->datasize=4;
      while(!feof(fp)) {
