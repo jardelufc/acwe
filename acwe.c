@@ -7,7 +7,20 @@
 
 
 #include "acwe.h"
+#ifdef __PARALELLOMP__
 #include <omp.h>
+#endif
+
+#ifdef XILINX
+#include "xparameters.h"	/* SDK generated parameters */
+#include "xsdps.h"		/* SD device driver */
+#include "xil_printf.h"
+#include "ff.h"
+#include "xil_cache.h"
+#include "xplatform_info.h"
+
+#endif
+
 
 const unsigned char morphvecs[9][9]={
 {0,1,2,12,13,14,24,25,26},
@@ -218,6 +231,15 @@ int readmhdraw (char *name, TImage *Image) {
       unsigned char *p;
       unsigned int aux;
       char localname[100];
+      aux=sizeof(aux);
+#ifdef XILINX
+      FRESULT Res;
+      FIL filf;		/* File object */
+      FIL filfp;		/* File object */
+     UINT NumBytesRead;
+
+#endif
+
 
       char sz1[100],sz2[100],sz3[100],sz4[100], szElType[100];
       int n0,m0,k0;
@@ -229,13 +251,31 @@ int readmhdraw (char *name, TImage *Image) {
 
      strcpy(localname,name);
      strcat(localname,".mhd");
+#ifdef XILINX
+ 	Res = f_open(&filf, localname, FA_READ);
+ 	if (Res) {
+ 		return XST_FAILURE;
+ 	}
+#else
       f=fopen(localname, "rb");
      if(f==NULL) {
 		printf("error opening file\n");
 		return -1;
      }
-      while(!feof(f)) {
+#endif
+
+#ifdef XILINX
+
+      while( !f_eof(&filf) ) {
+
+#else
+      while( !feof(f) ) {
+#endif
+#ifdef XILINX
+         f_gets(szin,100,&filf);
+#else
          fgets(szin,100,f);
+#endif
          if(!memcmp(szin,"DimSize",7)) {
             sscanf(szin,"%s = %d %d %d",sz1,&m0,&n0,&k0);
             //printf("%s = %d %d %d",sz1,m0,n0,k0);
@@ -249,7 +289,9 @@ int readmhdraw (char *name, TImage *Image) {
             //printf("%s = %d %d %d",sz1,m0,n0,k0);
          }
       }
-
+#ifdef XILINX
+      f_close(&filf);
+#endif
      Image->n0=n0;
      Image->m0=m0;
      Image->k0=k0;
@@ -259,11 +301,22 @@ int readmhdraw (char *name, TImage *Image) {
 	return -1;
      Image->pdata=pdata;
      strcpy(Image->szFileRawName,sz2);
+#ifdef XILINX
+  	Res = f_open(&filfp, sz2, FA_READ);
+  	if (Res) {
+  		return XST_FAILURE;
+  	}
+  	Res = f_lseek(&filfp, 0);
+  		if (Res) {
+  			return XST_FAILURE;
+  		}
+#else
      fp=fopen(sz2, "rb");
      if(fp==NULL) {
 		printf("error opening file\n");
 		return -1;
      }
+#endif
     
     if(!memcmp(szElType,"MET_SHORT",9)) {
      Image->datasize=2;
@@ -283,10 +336,18 @@ int readmhdraw (char *name, TImage *Image) {
      min=-600-1500/2;
      max=-600+1500/2;
      printf("min=%d max=%d\n", min, max);
+#ifdef XILINX
+     while(!f_eof(&filfp)) {
+#else
      while(!feof(fp)) {
+#endif
+#ifdef XILINX
+    Res = f_read(&filfp, &shortaux, 2,&NumBytesRead);
+    //f_read(&shortaux,2,1,&filfp);
 
-		
+#else
 	fread(&shortaux,2,1,fp);
+#endif
 	if(shortaux<min) *pdata=0;
         else if(shortaux>max) *pdata=0xFF;
         else *pdata=(unsigned char)255*(shortaux-min)/(max-min);
@@ -300,15 +361,30 @@ int readmhdraw (char *name, TImage *Image) {
 
      } else {
      Image->datasize=4;
+#ifdef XILINX
+     while(!f_eof(&filfp)) {
+
+#else
      while(!feof(fp)) {
-		
+#endif
+#ifdef XILINX
+    	    Res = f_read(&filfp, &aux, 4,&NumBytesRead);
+
+
+#else
 	fread(&aux,4,1,fp);
+#endif
 	*pdata=(unsigned char) (aux);
 	pdata++;		
      }	
     }
+
+#ifdef XILINX
+     f_close(&filfp);
+#else
     fclose(fp);	
     fclose(f);
+#endif
 
 }
 
@@ -326,25 +402,62 @@ int savemhdraw(char *name, TImage *Image) {
    unsigned char *p;
    char localname[100];
 
+#ifdef XILINX
+      FRESULT Res;
+      FIL filfoutput;		/* File object */
+      FIL filfmhd;		/* File object */
+  	UINT NumBytesWritten;
+
+#endif
+
    p=Image->pdata;
    size=Image->m0*Image->n0*Image->k0;
 
    strcpy(localname,name);	
    strcat(localname,".raw");
+#ifdef XILINX
+  	Res = f_open(&filfoutput, localname, FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+  	if (Res) {
+  		return XST_FAILURE;
+  	}
+
+#else
    foutput=fopen(localname, "wb");
    if(foutput==NULL) {
       printf("error opening file\n");
       exit(0);
    }
+#endif
 
    strcpy(localname,name);	
    strcat(localname,".mhd");
+#ifdef XILINX
+  	Res = f_open(&filfmhd, localname, FA_CREATE_ALWAYS | FA_WRITE);
+  	if (Res) {
+  		return XST_FAILURE;
+  	}
+
+#else
    fmhd=fopen(localname, "w");
    if(fmhd==NULL) {
       printf("error opening file\n");
       exit(0);
    }
+#endif
+#ifdef XILINX
+   f_printf(&filfmhd, "ObjectType = Image\n");
+   f_printf(&filfmhd, "NDims = 3\n");
+   f_printf(&filfmhd, "BinaryData = True\n");
+   f_printf(&filfmhd, "BinaryDataByteOrderMSB = False\n"); // ????
+   f_printf(&filfmhd, "CompressedData = False");
+   f_printf(&filfmhd, "DimSize = %d %d %d\n",Image->m0,Image->n0,Image->k0);
+  // if(Image->datasize==4)
+      f_printf(&filfmhd, "ElementType = MET_LONG\n");
+  // else if(Image->datasize==2)
+  //    fprintf(fmhd, "ElementType = MET_SHORT\n");
+   f_printf(&filfmhd, "ElementDataFile = %s.raw",name);
 
+#else
   fprintf(fmhd, "ObjectType = Image\n");
   fprintf(fmhd, "NDims = 3\n");
   fprintf(fmhd, "BinaryData = True\n");
@@ -356,6 +469,7 @@ int savemhdraw(char *name, TImage *Image) {
  // else if(Image->datasize==2) 
  //    fprintf(fmhd, "ElementType = MET_SHORT\n"); 
   fprintf(fmhd, "ElementDataFile = %s.raw",name);   
+#endif
 /*
 
 
@@ -367,15 +481,31 @@ AnatomicalOrientation = RAI
 ElementSpacing = 0.64453125 0.64453125 1.7999999523162842
 
 */
+#ifdef XILINX
+  	Res = f_lseek(&filfoutput, 0);
+  	if (Res) {
+  		return XST_FAILURE;
+  	}
+#endif
 
 
    for(i=0;i<(size);i++) {
       aux=(unsigned int)*p;
+#ifdef XILINX
+  	Res = f_write(&filfoutput, &aux, sizeof(int),&NumBytesWritten);
+     // f_write(&aux, sizeof(int),1,&filfoutput);
+#else
       fwrite(&aux, sizeof(int),1,foutput);
+#endif
       p++;
    }
+#ifdef XILINX
+   f_close(&filfoutput);
+   f_close(&filfmhd);
+#else
    fclose(foutput);
    fclose(fmhd);
+#endif
 }
 
 /**
@@ -709,7 +839,7 @@ void binmasscenter(unsigned char *p, int *pm, int *pn, int *pk,int m0, int n0, i
 */
 // funcao que toma uma imagem bidimensional e apaga os pixels
 // do interior do contor. faz isso seguindo as bordas de baixo para cima, de cima para baixo
-// Isso pode substituir as operações morfológicas ?
+// Isso pode substituir as operaÃ§Ãµes morfolÃ³gicas ?
 
 void cleaninterior (void) {
 	
@@ -1039,12 +1169,19 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
       ImageLSSplit[i].k0=ImageLS.k0/(x);  
    }
 
+#ifdef __PARALELLOMP__
+
  omp_set_num_threads( 2*x );
 
 #pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1)
 {
-  	//for(i=0;i<(2*x);i++) { 
+#else
+  	for(i=0;i<(2*x);i++) {
+#endif
+
+#ifdef __PARALELLOMP__
 		i = omp_get_thread_num();
+#endif
                 printf("numt=%i\n",i);
                 //i =  omp_get_num_threads();
     		binmasscenter(matrizlssplit[i], &mx, &ny, &kz,m0/2, n0,(k0/x),100);
@@ -1155,13 +1292,18 @@ void acwex2d(int x, char *filename, TImage *Image, unsigned int maxiteracoes, in
   ImageLSSlice.k0=1;
 
    fatiasize=(m0/2)*n0;
-// omp_set_num_threads( 2*x );
+#ifdef __PARALELLOMP__
 
-//#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j,pdataLSSplit,pmatrizpartial,pmatriz2partial,ImageLSSlice)
-//{
+ omp_set_num_threads( 2*x );
+
+#pragma omp parallel default(shared) private(i,mx,ny,kz,c0,c1,j,pdataLSSplit,pmatrizpartial,pmatriz2partial,ImageLSSlice)
+{
+#else
   	for(i=0;i<(2*x);i++) { 
-
-	  // i = omp_get_thread_num();
+#endif
+#ifdef __PARALELLOMP__
+  		 i = omp_get_thread_num();
+#endif
            printf("numt=%i\n",i);
            pdataLSSplit=ImageLSSplit[i].pdata;
 	   pmatrizpartial=matrizpartial[i];
