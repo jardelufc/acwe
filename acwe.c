@@ -1206,7 +1206,7 @@ void acwex(int x, char *filename, TImage *Image, unsigned int maxiteracoes, int 
    Image->n0=ImageLS.n0;
    Image->m0=ImageLS.m0;
    Image->k0=ImageLS.k0;
-   strcpy(Image->szFileRawName,ImageLS.szFileRawName);
+   //strcpy(Image->szFileRawName,ImageLS.szFileRawName);
    //free(matriz2);
    free(ImageLS.pdata);
    for(i=0;i<(2*x);i++) {
